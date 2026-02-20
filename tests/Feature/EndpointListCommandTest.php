@@ -11,7 +11,7 @@ class EndpointListCommandTest extends TestCase
 {
     public function test_lists_endpoints(): void
     {
-        WebhookEndpoint::create([
+        $ep1 = WebhookEndpoint::create([
             'name' => 'Payments API',
             'url' => 'https://payments.example.com/webhook',
             'direction' => 'outbound',
@@ -20,7 +20,7 @@ class EndpointListCommandTest extends TestCase
             'timeout_seconds' => 30,
         ]);
 
-        WebhookEndpoint::create([
+        $ep2 = WebhookEndpoint::create([
             'name' => 'Stripe Inbound',
             'url' => 'https://myapp.com/inbound/stripe',
             'direction' => 'inbound',
@@ -31,10 +31,10 @@ class EndpointListCommandTest extends TestCase
 
         $this->artisan('webhook:endpoint:list')
             ->expectsTable(
-                ['ID', 'Name', 'URL', 'Direction', 'Active', 'Timeout'],
+                ['Token', 'Name', 'URL', 'Direction', 'Active', 'Timeout'],
                 [
-                    [1, 'Payments API', 'https://payments.example.com/webhook', 'outbound', 'Yes', '30s'],
-                    [2, 'Stripe Inbound', 'https://myapp.com/inbound/stripe', 'inbound', 'Yes', '15s'],
+                    [$ep1->route_token, 'Payments API', 'https://payments.example.com/webhook', 'outbound', 'Yes', '30s'],
+                    [$ep2->route_token, 'Stripe Inbound', 'https://myapp.com/inbound/stripe', 'inbound', 'Yes', '15s'],
                 ]
             )
             ->assertSuccessful();
@@ -51,7 +51,7 @@ class EndpointListCommandTest extends TestCase
             'timeout_seconds' => 30,
         ]);
 
-        WebhookEndpoint::create([
+        $inbound = WebhookEndpoint::create([
             'name' => 'Inbound',
             'url' => 'https://example.com/in',
             'direction' => 'inbound',
@@ -62,9 +62,9 @@ class EndpointListCommandTest extends TestCase
 
         $this->artisan('webhook:endpoint:list', ['--direction' => 'inbound'])
             ->expectsTable(
-                ['ID', 'Name', 'URL', 'Direction', 'Active', 'Timeout'],
+                ['Token', 'Name', 'URL', 'Direction', 'Active', 'Timeout'],
                 [
-                    [2, 'Inbound', 'https://example.com/in', 'inbound', 'Yes', '30s'],
+                    [$inbound->route_token, 'Inbound', 'https://example.com/in', 'inbound', 'Yes', '30s'],
                 ]
             )
             ->assertSuccessful();

@@ -15,7 +15,12 @@ use Illuminate\Support\Facades\Http;
 use TechraysLabs\Webhooker\Contracts\RetryStrategy;
 use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
 use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Events\WebhookFailed;
+use TechraysLabs\Webhooker\Events\WebhookRetriesExhausted;
+use TechraysLabs\Webhooker\Events\WebhookSending;
+use TechraysLabs\Webhooker\Events\WebhookSent;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Support\WebhookLogger;
 
 /**
  * Queue job for delivering an outbound webhook event.
@@ -58,6 +63,8 @@ class DispatchWebhookJob implements ShouldQueue
 
         $repository->updateEvent($event, ['status' => WebhookEvent::STATUS_PROCESSING]);
 
+        WebhookSending::dispatch($event, $endpoint);
+
         $payload = json_encode($event->payload);
         $signature = $signer->generate($payload, $endpoint->secret);
         $signatureHeader = config('webhooks.signature_header', 'X-Webhook-Signature');
@@ -92,7 +99,7 @@ class DispatchWebhookJob implements ShouldQueue
         $durationMs = (int) ((microtime(true) - $startTime) * 1000);
         $attemptNumber = $event->attempts_count + 1;
 
-        $repository->createAttempt([
+        $attempt = $repository->createAttempt([
             'event_id' => $event->id,
             'request_headers' => config('webhooks.log_request_headers', false) ? $headers : null,
             'response_status' => $responseStatus,
@@ -112,8 +119,22 @@ class DispatchWebhookJob implements ShouldQueue
                 'next_retry_at' => null,
             ]);
 
+            $logger = new WebhookLogger;
+            $logger->info('Webhook delivered', [
+                'event_id' => $event->id,
+                'endpoint' => $endpoint->route_token,
+                'status' => $responseStatus,
+                'duration_ms' => $durationMs,
+            ]);
+
+            WebhookSent::dispatch($event->fresh(), $endpoint, $attempt);
+
             return;
         }
+
+        $logger = new WebhookLogger;
+
+        WebhookFailed::dispatch($event->fresh(), $endpoint, $attempt);
 
         if ($retryStrategy->shouldRetry($attemptNumber)) {
             $nextRetry = $retryStrategy->nextRetry($attemptNumber);
@@ -124,6 +145,14 @@ class DispatchWebhookJob implements ShouldQueue
                 'next_retry_at' => $nextRetry,
             ]);
 
+            $logger->warning('Webhook delivery failed, scheduling retry', [
+                'event_id' => $event->id,
+                'endpoint' => $endpoint->route_token,
+                'attempt' => $attemptNumber,
+                'next_retry_at' => $nextRetry->toIso8601String(),
+                'error' => $errorMessage,
+            ]);
+
             static::dispatch($this->eventId)->delay($nextRetry);
         } else {
             $repository->updateEvent($event, [
@@ -132,6 +161,15 @@ class DispatchWebhookJob implements ShouldQueue
                 'last_attempt_at' => Carbon::now(),
                 'next_retry_at' => null,
             ]);
+
+            $logger->error('Webhook delivery permanently failed', [
+                'event_id' => $event->id,
+                'endpoint' => $endpoint->route_token,
+                'total_attempts' => $attemptNumber,
+                'error' => $errorMessage,
+            ]);
+
+            WebhookRetriesExhausted::dispatch($event->fresh(), $endpoint);
         }
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Events\InboundWebhookReceived;
 use TechraysLabs\Webhooker\Jobs\ProcessInboundWebhookJob;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
 
@@ -20,7 +21,7 @@ class InboundWebhookController extends Controller
         private readonly WebhookRepository $repository,
     ) {}
 
-    public function __invoke(Request $request, int $endpoint): JsonResponse
+    public function __invoke(Request $request, string $endpoint): JsonResponse
     {
         $webhookEndpoint = $request->attributes->get('webhook_endpoint');
         $payload = $request->json()->all();
@@ -42,6 +43,8 @@ class InboundWebhookController extends Controller
             'status' => WebhookEvent::STATUS_PENDING,
             'attempts_count' => 0,
         ]);
+
+        InboundWebhookReceived::dispatch($event, $webhookEndpoint);
 
         ProcessInboundWebhookJob::dispatch($event->id);
 

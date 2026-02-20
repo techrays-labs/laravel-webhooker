@@ -6,9 +6,13 @@ namespace TechraysLabs\Webhooker\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
+use TechraysLabs\Webhooker\Contracts\WebhookMetrics;
+use TechraysLabs\Webhooker\DTOs\EndpointHealth;
 
 /**
  * @property int $id
+ * @property string $route_token
  * @property string $name
  * @property string $url
  * @property string $direction
@@ -29,6 +33,7 @@ class WebhookEndpoint extends Model
         'secret',
         'is_active',
         'timeout_seconds',
+        'route_token',
     ];
 
     protected $hidden = [
@@ -39,6 +44,23 @@ class WebhookEndpoint extends Model
         'is_active' => 'boolean',
         'timeout_seconds' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (WebhookEndpoint $endpoint): void {
+            if (empty($endpoint->route_token)) {
+                $endpoint->route_token = 'ep_'.Str::random(12);
+            }
+        });
+    }
+
+    /**
+     * Get the route key name for route model binding.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'route_token';
+    }
 
     /**
      * @return HasMany<WebhookEvent, $this>
@@ -62,5 +84,13 @@ class WebhookEndpoint extends Model
     public function isInbound(): bool
     {
         return $this->direction === 'inbound';
+    }
+
+    /**
+     * Get the computed health status for this endpoint.
+     */
+    public function healthStatus(): EndpointHealth
+    {
+        return app(WebhookMetrics::class)->endpointHealth($this->id);
     }
 }

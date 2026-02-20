@@ -29,17 +29,17 @@ class EndpointListCommand extends Command
 
         $rows = $endpoints->map(function ($endpoint) {
             return [
-                $endpoint->id,
+                $endpoint->route_token,
                 $endpoint->name,
                 $endpoint->url,
                 $endpoint->direction,
                 $endpoint->is_active ? 'Yes' : 'No',
-                $endpoint->timeout_seconds . 's',
+                $endpoint->timeout_seconds.'s',
             ];
         })->toArray();
 
         $this->table(
-            ['ID', 'Name', 'URL', 'Direction', 'Active', 'Timeout'],
+            ['Token', 'Name', 'URL', 'Direction', 'Active', 'Timeout'],
             $rows,
         );
 
