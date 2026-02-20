@@ -41,7 +41,7 @@ class WebhookEndpoint extends Model
     ];
 
     /**
-     * @return HasMany<WebhookEvent>
+     * @return HasMany<WebhookEvent, $this>
      */
     public function events(): HasMany
     {

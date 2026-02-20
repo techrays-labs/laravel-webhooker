@@ -34,11 +34,15 @@ interface WebhookRepository
 
     /**
      * Get all active endpoints, optionally filtered by direction.
+     *
+     * @return Collection<int, WebhookEndpoint>
      */
     public function getActiveEndpoints(?string $direction = null): Collection;
 
     /**
      * Get all endpoints with pagination.
+     *
+     * @return LengthAwarePaginator<int, WebhookEndpoint>
      */
     public function paginateEndpoints(int $perPage = 15): LengthAwarePaginator;
 
@@ -58,6 +62,8 @@ interface WebhookRepository
 
     /**
      * Get events ready for retry (status=pending or failed, next_retry_at <= now).
+     *
+     * @return Collection<int, WebhookEvent>
      */
     public function getRetryableEvents(): Collection;
 
@@ -72,6 +78,7 @@ interface WebhookRepository
      * Paginate events with optional filters.
      *
      * @param  array<string, mixed>  $filters
+     * @return LengthAwarePaginator<int, WebhookEvent>
      */
     public function paginateEvents(array $filters = [], int $perPage = 15): LengthAwarePaginator;
 
@@ -93,6 +100,8 @@ interface WebhookRepository
 
     /**
      * Get attempts for a specific event.
+     *
+     * @return Collection<int, WebhookAttempt>
      */
     public function getAttemptsForEvent(int $eventId): Collection;
 

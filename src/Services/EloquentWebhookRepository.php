@@ -29,6 +29,9 @@ class EloquentWebhookRepository implements WebhookRepository
         return WebhookEndpoint::find($id);
     }
 
+    /**
+     * @return Collection<int, WebhookEndpoint>
+     */
     public function getActiveEndpoints(?string $direction = null): Collection
     {
         $query = WebhookEndpoint::where('is_active', true);
@@ -40,6 +43,9 @@ class EloquentWebhookRepository implements WebhookRepository
         return $query->get();
     }
 
+    /**
+     * @return LengthAwarePaginator<int, WebhookEndpoint>
+     */
     public function paginateEndpoints(int $perPage = 15): LengthAwarePaginator
     {
         return WebhookEndpoint::orderByDesc('created_at')->paginate($perPage);
@@ -57,6 +63,9 @@ class EloquentWebhookRepository implements WebhookRepository
         return WebhookEvent::with('endpoint')->find($id);
     }
 
+    /**
+     * @return Collection<int, WebhookEvent>
+     */
     public function getRetryableEvents(): Collection
     {
         return WebhookEvent::where('status', WebhookEvent::STATUS_PENDING)
@@ -72,6 +81,9 @@ class EloquentWebhookRepository implements WebhookRepository
         return $event->update($attributes);
     }
 
+    /**
+     * @return LengthAwarePaginator<int, WebhookEvent>
+     */
     public function paginateEvents(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = WebhookEvent::with('endpoint')->orderByDesc('created_at');
@@ -105,6 +117,9 @@ class EloquentWebhookRepository implements WebhookRepository
         return WebhookAttempt::create($attributes);
     }
 
+    /**
+     * @return Collection<int, WebhookAttempt>
+     */
     public function getAttemptsForEvent(int $eventId): Collection
     {
         return WebhookAttempt::where('event_id', $eventId)

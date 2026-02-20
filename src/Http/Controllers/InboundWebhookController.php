@@ -24,9 +24,12 @@ class InboundWebhookController extends Controller
     {
         $webhookEndpoint = $request->attributes->get('webhook_endpoint');
         $payload = $request->json()->all();
-        $eventName = $request->header('X-Webhook-Event', $request->input('event', 'unknown'));
+
+        /** @var string $eventName */
+        $eventName = $request->header('X-Webhook-Event') ?? $request->input('event', 'unknown');
 
         // Deduplicate via event ID header
+        /** @var string|null $eventId */
         $eventId = $request->header('X-Webhook-Event-ID');
         if ($eventId !== null && $this->repository->inboundEventExists($webhookEndpoint->id, $eventId)) {
             return response()->json(['status' => 'duplicate'], 200);
