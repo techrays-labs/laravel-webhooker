@@ -29,10 +29,21 @@ This package must be:
 
 We follow **Semantic Versioning (SemVer)**.
 
-- `0.x.x` → Development phase
-- `1.0.0` → First stable production release
-- `1.x.x` → Backward-compatible improvements
+### Internal Development Milestones
+
+These are internal-only labels used in our planning docs (`CLAUDE.md`, `CLAUDE-v1.1-v1.5.md`). They are **never** published or tagged in git.
+
+- `v1.0` → Core engine (outbound, inbound, dashboard, retry, pruning)
+- `v1.1–v1.5` → Observability, control, DX, hardening, dashboard v2
+
+### Public Releases
+
+- `0.1.0` → First public release (includes everything from internal v1.0 through v1.5)
+- `0.x.x` → Iterative improvements, pre-stable
+- `1.0.0` → First stable production release (when API is battle-tested)
 - `2.0.0` → Major architecture/scaling change (Phase 2)
+
+**Do not tag any internal milestone versions.** The first git tag will be `v0.1.0`.
 
 Tag releases properly. Each release must update:
 
@@ -348,7 +359,9 @@ All outbound delivery must be **async**.
 
 ---
 
-## 16. Release Checklist (Before v1.0)
+## 16. Release Checklist (Before Public v0.1.0)
+
+> All internal milestones (v1.0 through v1.5) must be complete before this checklist applies.
 
 - [ ] All tests pass
 - [ ] CI passing
@@ -356,15 +369,15 @@ All outbound delivery must be **async**.
 - [ ] PHPStan clean
 - [ ] README finalized
 - [ ] CHANGELOG updated
-- [ ] Version bumped
-- [ ] Tag created
+- [ ] Version set to `0.1.0` in `composer.json`
+- [ ] Tag `v0.1.0` created
 - [ ] Example demo project tested
 
 ---
 
-## 17. Definition of Done (v1.0)
+## 17. Definition of Done (Internal v1.0 Milestone)
 
-The package is ready when:
+This internal milestone is complete when:
 
 - It installs cleanly
 - Outbound webhooks retry reliably
