@@ -24,7 +24,7 @@ class WebhookerServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/webhooks.php', 'webhooks');
+        $this->mergeConfigFrom(__DIR__.'/../config/webhooks.php', 'webhooks');
 
         $this->app->bind(WebhookRepository::class, EloquentWebhookRepository::class);
         $this->app->bind(RetryStrategy::class, function ($app) {
@@ -45,25 +45,25 @@ class WebhookerServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         if ($this->app['config']->get('webhooks.dashboard.enabled', true)) {
-            $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
+            $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         }
 
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'webhooker');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'webhooker');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/webhooks.php' => config_path('webhooks.php'),
+                __DIR__.'/../config/webhooks.php' => config_path('webhooks.php'),
             ], 'webhooker-config');
 
             $this->publishes([
-                __DIR__ . '/../database/migrations' => database_path('migrations'),
+                __DIR__.'/../database/migrations' => database_path('migrations'),
             ], 'webhooker-migrations');
 
             $this->publishes([
-                __DIR__ . '/../resources/views' => resource_path('views/vendor/webhooker'),
+                __DIR__.'/../resources/views' => resource_path('views/vendor/webhooker'),
             ], 'webhooker-views');
 
             $this->commands([

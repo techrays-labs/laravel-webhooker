@@ -34,7 +34,7 @@ class EndpointListCommand extends Command
                 $endpoint->url,
                 $endpoint->direction,
                 $endpoint->is_active ? 'Yes' : 'No',
-                $endpoint->timeout_seconds . 's',
+                $endpoint->timeout_seconds.'s',
             ];
         })->toArray();
 
