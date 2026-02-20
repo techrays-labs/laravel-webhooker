@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $endpoint_id
  * @property string $event_name
- * @property array $payload
+ * @property array<string, mixed> $payload
  * @property string $status
  * @property int $attempts_count
  * @property \Illuminate\Support\Carbon|null $last_attempt_at
@@ -50,7 +50,7 @@ class WebhookEvent extends Model
     public const STATUS_FAILED = 'failed';
 
     /**
-     * @return BelongsTo<WebhookEndpoint, self>
+     * @return BelongsTo<WebhookEndpoint, $this>
      */
     public function endpoint(): BelongsTo
     {
@@ -58,7 +58,7 @@ class WebhookEvent extends Model
     }
 
     /**
-     * @return HasMany<WebhookAttempt>
+     * @return HasMany<WebhookAttempt, $this>
      */
     public function attempts(): HasMany
     {

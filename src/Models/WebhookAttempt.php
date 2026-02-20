@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property int $id
  * @property int $event_id
- * @property array|null $request_headers
+ * @property array<string, mixed>|null $request_headers
  * @property int|null $response_status
  * @property string|null $response_body
  * @property string|null $error_message
@@ -41,7 +41,7 @@ class WebhookAttempt extends Model
     ];
 
     /**
-     * @return BelongsTo<WebhookEvent, self>
+     * @return BelongsTo<WebhookEvent, $this>
      */
     public function event(): BelongsTo
     {

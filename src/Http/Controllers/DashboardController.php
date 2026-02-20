@@ -27,7 +27,10 @@ class DashboardController extends Controller
         $events = $this->repository->paginateEvents($filters, 20);
         $endpoints = $this->repository->getActiveEndpoints();
 
-        return view('webhooker::events.index', compact('events', 'filters', 'endpoints'));
+        /** @var view-string $view */
+        $view = 'webhooker::events.index';
+
+        return view($view, compact('events', 'filters', 'endpoints'));
     }
 
     /**
@@ -43,7 +46,10 @@ class DashboardController extends Controller
 
         $attempts = $this->repository->getAttemptsForEvent($webhookEvent->id);
 
-        return view('webhooker::events.show', compact('webhookEvent', 'attempts'));
+        /** @var view-string $view */
+        $view = 'webhooker::events.show';
+
+        return view($view, compact('webhookEvent', 'attempts'));
     }
 
     /**
@@ -53,6 +59,9 @@ class DashboardController extends Controller
     {
         $endpoints = $this->repository->paginateEndpoints(20);
 
-        return view('webhooker::endpoints.index', compact('endpoints'));
+        /** @var view-string $view */
+        $view = 'webhooker::endpoints.index';
+
+        return view($view, compact('endpoints'));
     }
 }

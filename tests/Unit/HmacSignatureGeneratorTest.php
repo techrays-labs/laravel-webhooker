@@ -15,7 +15,7 @@ class HmacSignatureGeneratorTest extends TestCase
     {
         parent::setUp();
         $this->app['config']->set('webhooks.signing_algorithm', 'sha256');
-        $this->signer = new HmacSignatureGenerator();
+        $this->signer = new HmacSignatureGenerator;
     }
 
     public function test_generate_produces_valid_hmac(): void
