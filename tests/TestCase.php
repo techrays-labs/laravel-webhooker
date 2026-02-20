@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Tests;
+namespace TechraysLabs\Webhooker\Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
-use TechRaysLabs\Webhooker\WebhookerServiceProvider;
+use TechraysLabs\Webhooker\WebhookerServiceProvider;
 
 abstract class TestCase extends OrchestraTestCase
 {
@@ -21,7 +21,7 @@ abstract class TestCase extends OrchestraTestCase
 
     protected function getEnvironmentSetUp($app): void
     {
-        $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+        $app['config']->set('app.key', 'base64:' . base64_encode(random_bytes(32)));
 
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
@@ -42,6 +42,6 @@ abstract class TestCase extends OrchestraTestCase
 
     protected function defineDatabaseMigrations(): void
     {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
     }
 }

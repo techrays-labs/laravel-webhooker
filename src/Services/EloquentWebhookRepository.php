@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Services;
+namespace TechraysLabs\Webhooker\Services;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use TechRaysLabs\Webhooker\Contracts\WebhookRepository;
-use TechRaysLabs\Webhooker\Models\WebhookAttempt;
-use TechRaysLabs\Webhooker\Models\WebhookEndpoint;
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Models\WebhookAttempt;
+use TechraysLabs\Webhooker\Models\WebhookEndpoint;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
 
 /**
  * Eloquent-based implementation of the WebhookRepository contract.
@@ -97,7 +97,7 @@ class EloquentWebhookRepository implements WebhookRepository
         }
 
         if (! empty($filters['event_name'])) {
-            $query->where('event_name', 'like', '%'.$filters['event_name'].'%');
+            $query->where('event_name', 'like', '%' . $filters['event_name'] . '%');
         }
 
         return $query->paginate($perPage);

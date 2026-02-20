@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Services;
+namespace TechraysLabs\Webhooker\Services;
 
-use TechRaysLabs\Webhooker\Contracts\SignatureGenerator;
+use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
 
 /**
  * HMAC-based signature generator for webhook payloads.

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Http\Middleware;
+namespace TechraysLabs\Webhooker\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use TechRaysLabs\Webhooker\Contracts\SignatureGenerator;
-use TechRaysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 
 /**
  * Middleware to verify inbound webhook signatures using HMAC.

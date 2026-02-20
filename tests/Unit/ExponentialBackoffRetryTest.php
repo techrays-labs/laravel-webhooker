@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Tests\Unit;
+namespace TechraysLabs\Webhooker\Tests\Unit;
 
 use Illuminate\Support\Carbon;
-use TechRaysLabs\Webhooker\Strategies\ExponentialBackoffRetry;
-use TechRaysLabs\Webhooker\Tests\TestCase;
+use TechraysLabs\Webhooker\Strategies\ExponentialBackoffRetry;
+use TechraysLabs\Webhooker\Tests\TestCase;
 
 class ExponentialBackoffRetryTest extends TestCase
 {

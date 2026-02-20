@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Commands;
+namespace TechraysLabs\Webhooker\Commands;
 
 use Illuminate\Console\Command;
-use TechRaysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 
 /**
  * Artisan command to prune old webhook events based on retention policy.

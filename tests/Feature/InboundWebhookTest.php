@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Tests\Feature;
+namespace TechraysLabs\Webhooker\Tests\Feature;
 
 use Illuminate\Support\Facades\Queue;
-use TechRaysLabs\Webhooker\Jobs\ProcessInboundWebhookJob;
-use TechRaysLabs\Webhooker\Models\WebhookEndpoint;
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
-use TechRaysLabs\Webhooker\Tests\TestCase;
+use TechraysLabs\Webhooker\Jobs\ProcessInboundWebhookJob;
+use TechraysLabs\Webhooker\Models\WebhookEndpoint;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Tests\TestCase;
 
 class InboundWebhookTest extends TestCase
 {
@@ -156,8 +156,8 @@ class InboundWebhookTest extends TestCase
 
         $job = new ProcessInboundWebhookJob($event->id);
         $job->handle(
-            app(\TechRaysLabs\Webhooker\Contracts\WebhookRepository::class),
-            app(\TechRaysLabs\Webhooker\Contracts\InboundProcessor::class),
+            app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
+            app(\TechraysLabs\Webhooker\Contracts\InboundProcessor::class),
         );
 
         $event->refresh();

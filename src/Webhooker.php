@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker;
+namespace TechraysLabs\Webhooker;
 
-use TechRaysLabs\Webhooker\Contracts\WebhookRepository;
-use TechRaysLabs\Webhooker\Jobs\DispatchWebhookJob;
-use TechRaysLabs\Webhooker\Models\WebhookEndpoint;
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Jobs\DispatchWebhookJob;
+use TechraysLabs\Webhooker\Models\WebhookEndpoint;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
 
 /**
  * Main entry point for dispatching outbound webhook events.

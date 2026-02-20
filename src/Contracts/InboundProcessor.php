@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Contracts;
+namespace TechraysLabs\Webhooker\Contracts;
 
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
 
 /**
  * Contract for processing inbound webhook events.

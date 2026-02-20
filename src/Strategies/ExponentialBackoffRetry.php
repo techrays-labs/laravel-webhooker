@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Strategies;
+namespace TechraysLabs\Webhooker\Strategies;
 
 use Illuminate\Support\Carbon;
-use TechRaysLabs\Webhooker\Contracts\RetryStrategy;
+use TechraysLabs\Webhooker\Contracts\RetryStrategy;
 
 /**
  * Exponential backoff retry strategy.

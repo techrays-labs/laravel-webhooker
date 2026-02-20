@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Tests\Feature;
+namespace TechraysLabs\Webhooker\Tests\Feature;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
-use TechRaysLabs\Webhooker\Jobs\DispatchWebhookJob;
-use TechRaysLabs\Webhooker\Models\WebhookEndpoint;
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
-use TechRaysLabs\Webhooker\Tests\TestCase;
-use TechRaysLabs\Webhooker\Webhooker;
+use TechraysLabs\Webhooker\Jobs\DispatchWebhookJob;
+use TechraysLabs\Webhooker\Models\WebhookEndpoint;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Tests\TestCase;
+use TechraysLabs\Webhooker\Webhooker;
 
 class OutboundDispatchTest extends TestCase
 {
@@ -116,9 +116,9 @@ class OutboundDispatchTest extends TestCase
 
         $job = new DispatchWebhookJob($event->id);
         $job->handle(
-            app(\TechRaysLabs\Webhooker\Contracts\WebhookRepository::class),
-            app(\TechRaysLabs\Webhooker\Contracts\SignatureGenerator::class),
-            app(\TechRaysLabs\Webhooker\Contracts\RetryStrategy::class),
+            app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
+            app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
+            app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
         );
 
         $event->refresh();
@@ -159,9 +159,9 @@ class OutboundDispatchTest extends TestCase
 
         $job = new DispatchWebhookJob($event->id);
         $job->handle(
-            app(\TechRaysLabs\Webhooker\Contracts\WebhookRepository::class),
-            app(\TechRaysLabs\Webhooker\Contracts\SignatureGenerator::class),
-            app(\TechRaysLabs\Webhooker\Contracts\RetryStrategy::class),
+            app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
+            app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
+            app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
         );
 
         $event->refresh();
@@ -199,9 +199,9 @@ class OutboundDispatchTest extends TestCase
 
         $job = new DispatchWebhookJob($event->id);
         $job->handle(
-            app(\TechRaysLabs\Webhooker\Contracts\WebhookRepository::class),
-            app(\TechRaysLabs\Webhooker\Contracts\SignatureGenerator::class),
-            app(\TechRaysLabs\Webhooker\Contracts\RetryStrategy::class),
+            app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
+            app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
+            app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
         );
 
         $event->refresh();
@@ -231,9 +231,9 @@ class OutboundDispatchTest extends TestCase
 
         $job = new DispatchWebhookJob($event->id);
         $job->handle(
-            app(\TechRaysLabs\Webhooker\Contracts\WebhookRepository::class),
-            app(\TechRaysLabs\Webhooker\Contracts\SignatureGenerator::class),
-            app(\TechRaysLabs\Webhooker\Contracts\RetryStrategy::class),
+            app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
+            app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
+            app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
         );
 
         $event->refresh();
@@ -265,9 +265,9 @@ class OutboundDispatchTest extends TestCase
 
         $job = new DispatchWebhookJob($event->id);
         $job->handle(
-            app(\TechRaysLabs\Webhooker\Contracts\WebhookRepository::class),
-            app(\TechRaysLabs\Webhooker\Contracts\SignatureGenerator::class),
-            app(\TechRaysLabs\Webhooker\Contracts\RetryStrategy::class),
+            app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
+            app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
+            app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
         );
 
         Http::assertSent(function ($request) use ($event, $endpoint) {

@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Jobs;
+namespace TechraysLabs\Webhooker\Jobs;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use TechRaysLabs\Webhooker\Contracts\InboundProcessor;
-use TechRaysLabs\Webhooker\Contracts\WebhookRepository;
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Contracts\InboundProcessor;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
 
 /**
  * Queue job for processing an inbound webhook event asynchronously.

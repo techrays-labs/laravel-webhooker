@@ -40,18 +40,18 @@
     },
     "autoload": {
         "psr-4": {
-            "TechRaysLabs\\Webhooker\\": "src/"
+            "TechraysLabs\\Webhooker\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "TechRaysLabs\\Webhooker\\Tests\\": "tests/"
+            "TechraysLabs\\Webhooker\\Tests\\": "tests/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "TechRaysLabs\\Webhooker\\WebhookerServiceProvider"
+                "TechraysLabs\\Webhooker\\WebhookerServiceProvider"
             ]
         }
     },

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Contracts;
+namespace TechraysLabs\Webhooker\Contracts;
 
 /**
  * Contract for generating and verifying HMAC signatures for webhook payloads.

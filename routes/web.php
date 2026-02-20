@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use TechRaysLabs\Webhooker\Http\Controllers\DashboardController;
-use TechRaysLabs\Webhooker\Http\Controllers\InboundWebhookController;
-use TechRaysLabs\Webhooker\Http\Middleware\VerifyWebhookSignature;
+use TechraysLabs\Webhooker\Http\Controllers\DashboardController;
+use TechraysLabs\Webhooker\Http\Controllers\InboundWebhookController;
+use TechraysLabs\Webhooker\Http\Middleware\VerifyWebhookSignature;
 
 $dashboardConfig = config('webhooks.dashboard', []);
 $prefix = $dashboardConfig['prefix'] ?? 'webhooks';

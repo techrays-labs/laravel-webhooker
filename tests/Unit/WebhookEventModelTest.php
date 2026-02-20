@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Tests\Unit;
+namespace TechraysLabs\Webhooker\Tests\Unit;
 
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
-use TechRaysLabs\Webhooker\Tests\TestCase;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Tests\TestCase;
 
 class WebhookEventModelTest extends TestCase
 {

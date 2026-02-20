@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Commands;
+namespace TechraysLabs\Webhooker\Commands;
 
 use Illuminate\Console\Command;
-use TechRaysLabs\Webhooker\Contracts\WebhookRepository;
-use TechRaysLabs\Webhooker\Jobs\DispatchWebhookJob;
-use TechRaysLabs\Webhooker\Jobs\ProcessInboundWebhookJob;
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Jobs\DispatchWebhookJob;
+use TechraysLabs\Webhooker\Jobs\ProcessInboundWebhookJob;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
 
 /**
  * Artisan command to replay a webhook event (outbound or inbound).

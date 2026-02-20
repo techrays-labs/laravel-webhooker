@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Services;
+namespace TechraysLabs\Webhooker\Services;
 
-use TechRaysLabs\Webhooker\Contracts\InboundProcessor;
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Contracts\InboundProcessor;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
 
 /**
  * Default inbound processor that marks events as delivered.

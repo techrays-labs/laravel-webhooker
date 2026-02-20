@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Http\Controllers;
+namespace TechraysLabs\Webhooker\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use TechRaysLabs\Webhooker\Contracts\WebhookRepository;
-use TechRaysLabs\Webhooker\Jobs\ProcessInboundWebhookJob;
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Jobs\ProcessInboundWebhookJob;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
 
 /**
  * Controller for receiving inbound webhook payloads.

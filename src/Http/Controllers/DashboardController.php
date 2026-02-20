@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Http\Controllers;
+namespace TechraysLabs\Webhooker\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
-use TechRaysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 
 /**
  * Dashboard controller for viewing webhook endpoints, events, and attempts.

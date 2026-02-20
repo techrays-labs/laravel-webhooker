@@ -48,7 +48,7 @@ php artisan migrate
 ### Register an endpoint
 
 ```php
-use TechRaysLabs\Webhooker\Webhooker;
+use TechraysLabs\Webhooker\Webhooker;
 
 $webhooker = app(Webhooker::class);
 
@@ -105,6 +105,7 @@ POST /api/webhooks/inbound/{endpoint_id}
 ```
 
 The package automatically:
+
 1. Verifies the HMAC signature via the `X-Webhook-Signature` header
 2. Rejects invalid or missing signatures with `401`
 3. Deduplicates events via the `X-Webhook-Event-ID` header
@@ -116,14 +117,14 @@ The package automatically:
 Bind your own processor in a service provider:
 
 ```php
-use TechRaysLabs\Webhooker\Contracts\InboundProcessor;
+use TechraysLabs\Webhooker\Contracts\InboundProcessor;
 
 $this->app->bind(InboundProcessor::class, MyStripeProcessor::class);
 ```
 
 ```php
-use TechRaysLabs\Webhooker\Contracts\InboundProcessor;
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Contracts\InboundProcessor;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
 
 class MyStripeProcessor implements InboundProcessor
 {
@@ -149,6 +150,7 @@ The built-in dashboard provides operational visibility into your webhook events.
 Access it at `/webhooks` (configurable prefix).
 
 The dashboard includes:
+
 - Event listing with status, endpoint, and attempt count
 - Filtering by status, endpoint, and event name
 - Event detail view with payload and delivery attempt timeline
@@ -213,18 +215,18 @@ This produces delays of: 10s, 20s, 40s, 80s, 160s.
 Implement the `RetryStrategy` contract and bind it in your service provider:
 
 ```php
-use TechRaysLabs\Webhooker\Contracts\RetryStrategy;
+use TechraysLabs\Webhooker\Contracts\RetryStrategy;
 
 $this->app->bind(RetryStrategy::class, MyCustomRetryStrategy::class);
 ```
 
 ## CLI Commands
 
-| Command | Description |
-|---------|-------------|
-| `webhook:prune` | Delete events older than retention period |
-| `webhook:replay {event_id}` | Re-dispatch a failed event |
-| `webhook:endpoint:list` | List all registered endpoints |
+| Command                     | Description                               |
+| --------------------------- | ----------------------------------------- |
+| `webhook:prune`             | Delete events older than retention period |
+| `webhook:replay {event_id}` | Re-dispatch a failed event                |
+| `webhook:endpoint:list`     | List all registered endpoints             |
 
 ## Configuration Reference
 
@@ -258,6 +260,7 @@ return [
 ## Roadmap
 
 ### v1.0 (Current Focus)
+
 - [x] Outbound webhook delivery with retry
 - [x] Inbound webhook reception with verification
 - [x] HMAC signature generation/verification
@@ -271,6 +274,7 @@ return [
 - [ ] PHPStan static analysis
 
 ### v2.0 (Future)
+
 - Storage driver abstraction
 - Table partitioning support
 - Dead-letter queue

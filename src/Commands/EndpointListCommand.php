@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Commands;
+namespace TechraysLabs\Webhooker\Commands;
 
 use Illuminate\Console\Command;
-use TechRaysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 
 /**
  * Artisan command to list all registered webhook endpoints.
@@ -34,7 +34,7 @@ class EndpointListCommand extends Command
                 $endpoint->url,
                 $endpoint->direction,
                 $endpoint->is_active ? 'Yes' : 'No',
-                $endpoint->timeout_seconds.'s',
+                $endpoint->timeout_seconds . 's',
             ];
         })->toArray();
 

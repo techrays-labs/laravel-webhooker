@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Contracts;
+namespace TechraysLabs\Webhooker\Contracts;
 
 use Illuminate\Support\Carbon;
 

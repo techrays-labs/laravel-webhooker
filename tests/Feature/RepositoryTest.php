@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Tests\Feature;
+namespace TechraysLabs\Webhooker\Tests\Feature;
 
 use Illuminate\Support\Carbon;
-use TechRaysLabs\Webhooker\Contracts\WebhookRepository;
-use TechRaysLabs\Webhooker\Models\WebhookEndpoint;
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
-use TechRaysLabs\Webhooker\Tests\TestCase;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Models\WebhookEndpoint;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Tests\TestCase;
 
 class RepositoryTest extends TestCase
 {

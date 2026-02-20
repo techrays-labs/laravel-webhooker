@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Tests\Feature;
+namespace TechraysLabs\Webhooker\Tests\Feature;
 
-use TechRaysLabs\Webhooker\Models\WebhookEndpoint;
-use TechRaysLabs\Webhooker\Tests\TestCase;
+use TechraysLabs\Webhooker\Models\WebhookEndpoint;
+use TechraysLabs\Webhooker\Tests\TestCase;
 
 class EndpointListCommandTest extends TestCase
 {

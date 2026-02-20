@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace TechRaysLabs\Webhooker\Contracts;
+namespace TechraysLabs\Webhooker\Contracts;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use TechRaysLabs\Webhooker\Models\WebhookAttempt;
-use TechRaysLabs\Webhooker\Models\WebhookEndpoint;
-use TechRaysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Models\WebhookAttempt;
+use TechraysLabs\Webhooker\Models\WebhookEndpoint;
+use TechraysLabs\Webhooker\Models\WebhookEvent;
 
 /**
  * Repository contract for all webhook data persistence operations.
