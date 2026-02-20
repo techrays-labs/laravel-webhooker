@@ -11,6 +11,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use TechraysLabs\Webhooker\Contracts\InboundProcessor;
 use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Events\InboundWebhookFailed;
+use TechraysLabs\Webhooker\Events\InboundWebhookProcessed;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
 
 /**
@@ -51,10 +53,18 @@ class ProcessInboundWebhookJob implements ShouldQueue
             $repository->updateEvent($event, [
                 'status' => $success ? WebhookEvent::STATUS_DELIVERED : WebhookEvent::STATUS_FAILED,
             ]);
+
+            if ($success) {
+                InboundWebhookProcessed::dispatch($event->fresh());
+            } else {
+                InboundWebhookFailed::dispatch($event->fresh());
+            }
         } catch (\Throwable $e) {
             $repository->updateEvent($event, [
                 'status' => WebhookEvent::STATUS_FAILED,
             ]);
+
+            InboundWebhookFailed::dispatch($event->fresh(), $e);
         }
     }
 }

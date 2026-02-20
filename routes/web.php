@@ -31,5 +31,6 @@ Route::prefix($prefix)
 
 // Inbound webhook receiver route (no auth, uses signature verification)
 Route::post('/api/webhooks/inbound/{endpoint}', InboundWebhookController::class)
+    ->where('endpoint', 'ep_[a-zA-Z0-9]+')
     ->middleware(VerifyWebhookSignature::class)
     ->name('webhooker.inbound');

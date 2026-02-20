@@ -8,7 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
-use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Models\WebhookEndpoint;
 
 /**
  * Middleware to verify inbound webhook signatures using HMAC.
@@ -17,20 +17,21 @@ class VerifyWebhookSignature
 {
     public function __construct(
         private readonly SignatureGenerator $signer,
-        private readonly WebhookRepository $repository,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
-        $endpointId = (int) $request->route('endpoint');
-        $endpoint = $this->repository->findEndpoint($endpointId);
+        $routeToken = (string) $request->route('endpoint');
+        $endpoint = WebhookEndpoint::where('route_token', $routeToken)->first();
 
         if ($endpoint === null || ! $endpoint->is_active || ! $endpoint->isInbound()) {
-            return response()->json(['error' => 'Invalid endpoint.'], 404);
+            return response()->json(['error' => 'Not found.'], 404);
         }
 
         $signatureHeader = config('webhooks.signature_header', 'X-Webhook-Signature');
-        $signature = $request->header($signatureHeader, '');
+
+        /** @var string $signature */
+        $signature = $request->header($signatureHeader) ?? '';
 
         if (empty($signature)) {
             return response()->json(['error' => 'Missing signature.'], 401);

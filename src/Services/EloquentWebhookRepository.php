@@ -97,7 +97,7 @@ class EloquentWebhookRepository implements WebhookRepository
         }
 
         if (! empty($filters['event_name'])) {
-            $query->where('event_name', 'like', '%' . $filters['event_name'] . '%');
+            $query->where('event_name', 'like', '%'.$filters['event_name'].'%');
         }
 
         return $query->paginate($perPage);

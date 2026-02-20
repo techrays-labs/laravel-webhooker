@@ -7,7 +7,7 @@
     <table>
         <thead>
             <tr>
-                <th>ID</th>
+                <th>Token</th>
                 <th>Name</th>
                 <th>URL</th>
                 <th>Direction</th>
@@ -19,7 +19,7 @@
         <tbody>
             @forelse($endpoints as $endpoint)
                 <tr>
-                    <td>{{ $endpoint->id }}</td>
+                    <td><code>{{ $endpoint->route_token }}</code></td>
                     <td>{{ $endpoint->name }}</td>
                     <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $endpoint->url }}</td>
                     <td><span class="badge badge-{{ $endpoint->direction }}">{{ $endpoint->direction }}</span></td>
@@ -27,6 +27,13 @@
                     <td>{{ $endpoint->timeout_seconds }}s</td>
                     <td>{{ $endpoint->created_at->diffForHumans() }}</td>
                 </tr>
+                @if($endpoint->isInbound())
+                <tr>
+                    <td colspan="7" style="padding: 4px 12px; background: #f8f9fa; font-size: 0.85em;">
+                        Inbound URL: <code>/api/webhooks/inbound/{{ $endpoint->route_token }}</code>
+                    </td>
+                </tr>
+                @endif
             @empty
                 <tr>
                     <td colspan="7" class="text-muted" style="text-align: center;">No endpoints registered.</td>

@@ -121,4 +121,36 @@ return [
         'gate' => 'viewWebhookDashboard',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Metrics Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Controls caching and thresholds for the webhook metrics service.
+    |
+    */
+
+    'metrics' => [
+        'cache_ttl' => 60,
+        'healthy_threshold' => 95,
+        'degraded_threshold' => 70,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Logging Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Optional dedicated log channel for webhook activity.
+    | Set channel to null to use Laravel's default log channel.
+    |
+    */
+
+    'logging' => [
+        'channel' => env('WEBHOOK_LOG_CHANNEL', null),
+        'log_payload' => false,
+        'log_headers' => false,
+        'log_level' => 'info',
+    ],
+
 ];

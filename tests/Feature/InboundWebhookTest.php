@@ -36,7 +36,7 @@ class InboundWebhookTest extends TestCase
         $signature = hash_hmac('sha256', $payload, 'inbound-secret');
 
         $response = $this->postJson(
-            route('webhooker.inbound', $this->endpoint->id),
+            '/api/webhooks/inbound/'.$this->endpoint->route_token,
             json_decode($payload, true),
             [
                 'X-Webhook-Signature' => $signature,
@@ -58,7 +58,7 @@ class InboundWebhookTest extends TestCase
     public function test_rejects_missing_signature(): void
     {
         $response = $this->postJson(
-            route('webhooker.inbound', $this->endpoint->id),
+            '/api/webhooks/inbound/'.$this->endpoint->route_token,
             ['event' => 'test'],
         );
 
@@ -69,7 +69,7 @@ class InboundWebhookTest extends TestCase
     public function test_rejects_invalid_signature(): void
     {
         $response = $this->postJson(
-            route('webhooker.inbound', $this->endpoint->id),
+            '/api/webhooks/inbound/'.$this->endpoint->route_token,
             ['event' => 'test'],
             ['X-Webhook-Signature' => 'invalid-signature'],
         );
@@ -78,13 +78,27 @@ class InboundWebhookTest extends TestCase
         $response->assertJson(['error' => 'Invalid signature.']);
     }
 
-    public function test_rejects_nonexistent_endpoint(): void
+    public function test_rejects_nonexistent_token(): void
     {
         $payload = json_encode(['event' => 'test']);
         $signature = hash_hmac('sha256', $payload, 'inbound-secret');
 
         $response = $this->postJson(
-            '/api/webhooks/inbound/99999',
+            '/api/webhooks/inbound/ep_nonexistent1',
+            json_decode($payload, true),
+            ['X-Webhook-Signature' => $signature],
+        );
+
+        $response->assertStatus(404);
+    }
+
+    public function test_rejects_integer_id_route(): void
+    {
+        $payload = json_encode(['event' => 'test']);
+        $signature = hash_hmac('sha256', $payload, 'inbound-secret');
+
+        $response = $this->postJson(
+            '/api/webhooks/inbound/1',
             json_decode($payload, true),
             ['X-Webhook-Signature' => $signature],
         );
@@ -107,7 +121,7 @@ class InboundWebhookTest extends TestCase
         $signature = hash_hmac('sha256', $payload, 'outbound-secret');
 
         $response = $this->postJson(
-            route('webhooker.inbound', $outbound->id),
+            '/api/webhooks/inbound/'.$outbound->route_token,
             json_decode($payload, true),
             ['X-Webhook-Signature' => $signature],
         );
@@ -132,7 +146,7 @@ class InboundWebhookTest extends TestCase
         $signature = hash_hmac('sha256', $payload, 'inbound-secret');
 
         $response = $this->postJson(
-            route('webhooker.inbound', $this->endpoint->id),
+            '/api/webhooks/inbound/'.$this->endpoint->route_token,
             json_decode($payload, true),
             [
                 'X-Webhook-Signature' => $signature,

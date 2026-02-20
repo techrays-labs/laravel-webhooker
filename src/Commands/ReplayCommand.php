@@ -6,6 +6,7 @@ namespace TechraysLabs\Webhooker\Commands;
 
 use Illuminate\Console\Command;
 use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Events\WebhookReplayRequested;
 use TechraysLabs\Webhooker\Jobs\DispatchWebhookJob;
 use TechraysLabs\Webhooker\Jobs\ProcessInboundWebhookJob;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
@@ -34,6 +35,8 @@ class ReplayCommand extends Command
             'status' => WebhookEvent::STATUS_PENDING,
             'next_retry_at' => null,
         ]);
+
+        WebhookReplayRequested::dispatch($event);
 
         if ($event->endpoint && $event->endpoint->isInbound()) {
             ProcessInboundWebhookJob::dispatch($event->id);
