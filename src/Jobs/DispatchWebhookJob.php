@@ -12,6 +12,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
+use TechraysLabs\Webhooker\Contracts\CircuitBreaker;
 use TechraysLabs\Webhooker\Contracts\RetryStrategy;
 use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
 use TechraysLabs\Webhooker\Contracts\WebhookRepository;
@@ -20,6 +22,7 @@ use TechraysLabs\Webhooker\Events\WebhookRetriesExhausted;
 use TechraysLabs\Webhooker\Events\WebhookSending;
 use TechraysLabs\Webhooker\Events\WebhookSent;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Strategies\ExponentialBackoffRetry;
 use TechraysLabs\Webhooker\Support\WebhookLogger;
 
 /**
@@ -36,6 +39,7 @@ class DispatchWebhookJob implements ShouldQueue
 
     public function __construct(
         public readonly int $eventId,
+        public readonly bool $force = false,
     ) {
         $queueConfig = config('webhooks.queue', []);
         $this->onConnection($queueConfig['connection'] ?? null);
@@ -46,6 +50,7 @@ class DispatchWebhookJob implements ShouldQueue
         WebhookRepository $repository,
         SignatureGenerator $signer,
         RetryStrategy $retryStrategy,
+        CircuitBreaker $circuitBreaker,
     ): void {
         $event = $repository->findEvent($this->eventId);
 
@@ -59,6 +64,32 @@ class DispatchWebhookJob implements ShouldQueue
             $repository->updateEvent($event, ['status' => WebhookEvent::STATUS_FAILED]);
 
             return;
+        }
+
+        if (! $this->force && ! $circuitBreaker->isAvailable($endpoint)) {
+            $repository->updateEvent($event, [
+                'status' => WebhookEvent::STATUS_PENDING,
+                'next_retry_at' => Carbon::now()->addSeconds(
+                    (int) config('webhooks.circuit_breaker.cooldown_seconds', 300)
+                ),
+            ]);
+
+            return;
+        }
+
+        // Rate limiting check
+        if (config('webhooks.rate_limiting.enabled', false)) {
+            $limit = $endpoint->rate_limit_per_minute ?? (int) config('webhooks.rate_limiting.default_per_minute', 60);
+            $key = "webhooker:rate:{$endpoint->id}";
+
+            if (RateLimiter::tooManyAttempts($key, $limit)) {
+                $retryAfter = RateLimiter::availableIn($key);
+                static::dispatch($this->eventId, $this->force)->delay(Carbon::now()->addSeconds($retryAfter));
+
+                return;
+            }
+
+            RateLimiter::hit($key, 60);
         }
 
         $repository->updateEvent($event, ['status' => WebhookEvent::STATUS_PROCESSING]);
@@ -99,6 +130,28 @@ class DispatchWebhookJob implements ShouldQueue
         $durationMs = (int) ((microtime(true) - $startTime) * 1000);
         $attemptNumber = $event->attempts_count + 1;
 
+        if (config('webhooks.debug.enabled', false)) {
+            $debugLogger = new WebhookLogger;
+            $debugContext = [
+                'event_id' => $event->id,
+                'endpoint' => $endpoint->route_token,
+                'url' => $endpoint->url,
+                'duration_ms' => $durationMs,
+                'response_status' => $responseStatus,
+                'error' => $errorMessage,
+            ];
+            if (config('webhooks.debug.log_full_payload', false)) {
+                $debugContext['payload'] = $event->payload;
+            }
+            if (config('webhooks.debug.log_full_headers', false)) {
+                $debugContext['request_headers'] = $headers;
+            }
+            if (config('webhooks.debug.log_full_response_body', false)) {
+                $debugContext['response_body'] = $responseBody;
+            }
+            $debugLogger->debug('Webhook request cycle', $debugContext);
+        }
+
         $attempt = $repository->createAttempt([
             'event_id' => $event->id,
             'request_headers' => config('webhooks.log_request_headers', false) ? $headers : null,
@@ -112,6 +165,8 @@ class DispatchWebhookJob implements ShouldQueue
         $isSuccess = $responseStatus !== null && $responseStatus >= 200 && $responseStatus < 300;
 
         if ($isSuccess) {
+            $circuitBreaker->recordSuccess($endpoint);
+
             $repository->updateEvent($event, [
                 'status' => WebhookEvent::STATUS_DELIVERED,
                 'attempts_count' => $attemptNumber,
@@ -132,12 +187,16 @@ class DispatchWebhookJob implements ShouldQueue
             return;
         }
 
+        $circuitBreaker->recordFailure($endpoint);
+
         $logger = new WebhookLogger;
 
         WebhookFailed::dispatch($event->fresh(), $endpoint, $attempt);
 
-        if ($retryStrategy->shouldRetry($attemptNumber)) {
-            $nextRetry = $retryStrategy->nextRetry($attemptNumber);
+        $effectiveStrategy = $this->resolveRetryStrategy($endpoint, $retryStrategy);
+
+        if ($effectiveStrategy->shouldRetry($attemptNumber)) {
+            $nextRetry = $effectiveStrategy->nextRetry($attemptNumber);
             $repository->updateEvent($event, [
                 'status' => WebhookEvent::STATUS_PENDING,
                 'attempts_count' => $attemptNumber,
@@ -171,5 +230,37 @@ class DispatchWebhookJob implements ShouldQueue
 
             WebhookRetriesExhausted::dispatch($event->fresh(), $endpoint);
         }
+    }
+
+    /**
+     * Resolve the effective retry strategy for the endpoint.
+     *
+     * Per-endpoint config takes precedence over the global strategy.
+     */
+    private function resolveRetryStrategy(
+        \TechraysLabs\Webhooker\Models\WebhookEndpoint $endpoint,
+        RetryStrategy $globalStrategy,
+    ): RetryStrategy {
+        // If endpoint has a custom strategy class, use it
+        if ($endpoint->retry_strategy !== null) {
+            $strategyClass = $endpoint->retry_strategy;
+
+            if (class_exists($strategyClass) && is_subclass_of($strategyClass, RetryStrategy::class)) {
+                return app($strategyClass);
+            }
+        }
+
+        // If endpoint has custom max_retries, wrap default strategy with that limit
+        if ($endpoint->max_retries !== null) {
+            $config = config('webhooks.retry', []);
+
+            return new ExponentialBackoffRetry(
+                maxAttempts: $endpoint->max_retries,
+                baseDelaySeconds: $config['base_delay_seconds'] ?? 10,
+                multiplier: $config['multiplier'] ?? 2,
+            );
+        }
+
+        return $globalStrategy;
     }
 }

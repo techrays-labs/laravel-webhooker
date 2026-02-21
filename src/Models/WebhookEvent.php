@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $attempts_count
  * @property \Illuminate\Support\Carbon|null $last_attempt_at
  * @property \Illuminate\Support\Carbon|null $next_retry_at
+ * @property string|null $idempotency_key
  * @property \Illuminate\Support\Carbon $created_at
  * @property \Illuminate\Support\Carbon $updated_at
  */
@@ -28,6 +29,7 @@ class WebhookEvent extends Model
         'endpoint_id',
         'event_name',
         'payload',
+        'idempotency_key',
         'status',
         'attempts_count',
         'last_attempt_at',

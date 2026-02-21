@@ -5,3 +5,5 @@ parameters:
     paths:
         - src
     level: 6
+    ignoreErrors:
+        - '#Trait .+ is used zero times and is not analysed#'

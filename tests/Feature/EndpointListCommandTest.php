@@ -31,10 +31,10 @@ class EndpointListCommandTest extends TestCase
 
         $this->artisan('webhook:endpoint:list')
             ->expectsTable(
-                ['Token', 'Name', 'URL', 'Direction', 'Active', 'Timeout'],
+                ['Token', 'Name', 'URL', 'Direction', 'Active', 'Timeout', 'Tags'],
                 [
-                    [$ep1->route_token, 'Payments API', 'https://payments.example.com/webhook', 'outbound', 'Yes', '30s'],
-                    [$ep2->route_token, 'Stripe Inbound', 'https://myapp.com/inbound/stripe', 'inbound', 'Yes', '15s'],
+                    [$ep1->route_token, 'Payments API', 'https://payments.example.com/webhook', 'outbound', 'Yes', '30s', ''],
+                    [$ep2->route_token, 'Stripe Inbound', 'https://myapp.com/inbound/stripe', 'inbound', 'Yes', '15s', ''],
                 ]
             )
             ->assertSuccessful();
@@ -62,9 +62,9 @@ class EndpointListCommandTest extends TestCase
 
         $this->artisan('webhook:endpoint:list', ['--direction' => 'inbound'])
             ->expectsTable(
-                ['Token', 'Name', 'URL', 'Direction', 'Active', 'Timeout'],
+                ['Token', 'Name', 'URL', 'Direction', 'Active', 'Timeout', 'Tags'],
                 [
-                    [$inbound->route_token, 'Inbound', 'https://example.com/in', 'inbound', 'Yes', '30s'],
+                    [$inbound->route_token, 'Inbound', 'https://example.com/in', 'inbound', 'Yes', '30s', ''],
                 ]
             )
             ->assertSuccessful();

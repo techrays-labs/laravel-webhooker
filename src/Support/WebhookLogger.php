@@ -49,4 +49,12 @@ class WebhookLogger
     {
         $this->channel()->error("[Webhooker] {$message}", $context);
     }
+
+    /**
+     * @param  array<string, mixed>  $context
+     */
+    public function debug(string $message, array $context = []): void
+    {
+        $this->channel()->debug("[Webhooker] {$message}", $context);
+    }
 }
