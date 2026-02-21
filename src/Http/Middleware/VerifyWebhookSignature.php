@@ -6,7 +6,6 @@ namespace TechraysLabs\Webhooker\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\Response;
 use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;

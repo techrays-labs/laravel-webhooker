@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace TechraysLabs\Webhooker\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 use TechraysLabs\Webhooker\Events\EndpointSecretRotated;
-use Illuminate\Support\Str;
 
 /**
  * Artisan command to rotate an endpoint's secret.

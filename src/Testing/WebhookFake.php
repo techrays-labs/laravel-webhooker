@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace TechraysLabs\Webhooker\Testing;
 
 use Illuminate\Support\Collection;
-use TechraysLabs\Webhooker\Contracts\CircuitBreaker;
-use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
 use TechraysLabs\Webhooker\Webhooker;

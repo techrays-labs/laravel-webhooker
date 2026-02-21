@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TechraysLabs\Webhooker;
 
+use Illuminate\Support\Str;
 use TechraysLabs\Webhooker\Contracts\CircuitBreaker;
 use TechraysLabs\Webhooker\Contracts\WebhookMetrics;
 use TechraysLabs\Webhooker\Contracts\WebhookRepository;
@@ -12,7 +13,6 @@ use TechraysLabs\Webhooker\Events\EndpointSecretRotated;
 use TechraysLabs\Webhooker\Jobs\DispatchWebhookJob;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
-use Illuminate\Support\Str;
 
 /**
  * Main entry point for dispatching outbound webhook events.
@@ -202,14 +202,14 @@ class Webhooker
             'event_name' => $event->event_name,
             'status' => $event->status,
             'attempts_count' => $event->attempts_count,
-            'created_at' => $event->created_at?->toIso8601String(),
+            'created_at' => $event->created_at->toIso8601String(),
             'last_attempt_at' => $event->last_attempt_at?->toIso8601String(),
             'next_retry_at' => $event->next_retry_at?->toIso8601String(),
             'attempts' => $attempts->map(fn ($a) => [
                 'status' => $a->response_status,
                 'duration_ms' => $a->duration_ms,
                 'error' => $a->error_message,
-                'at' => $a->attempted_at?->toIso8601String(),
+                'at' => $a->attempted_at->toIso8601String(),
             ])->toArray(),
         ];
     }

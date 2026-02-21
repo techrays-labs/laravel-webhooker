@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace TechraysLabs\Webhooker\Tests\Feature;
 
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;

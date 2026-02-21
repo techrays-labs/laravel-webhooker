@@ -28,6 +28,14 @@ Route::prefix($prefix)
         Route::get('/endpoints', [DashboardController::class, 'endpoints'])
             ->can($gate)
             ->name('webhooker.endpoints.index');
+
+        Route::get('/endpoints/{endpoint}', [DashboardController::class, 'showEndpoint'])
+            ->can($gate)
+            ->name('webhooker.endpoints.show');
+
+        Route::post('/events/bulk', [DashboardController::class, 'bulkAction'])
+            ->can($gate)
+            ->name('webhooker.events.bulk');
     });
 
 // Inbound webhook receiver route (no auth, uses signature verification)

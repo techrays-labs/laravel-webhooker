@@ -119,6 +119,7 @@ return [
         'prefix' => 'webhooks',
         'middleware' => ['web', 'auth'],
         'gate' => 'viewWebhookDashboard',
+        'max_bulk_size' => 100,
     ],
 
     /*
