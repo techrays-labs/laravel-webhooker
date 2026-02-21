@@ -16,13 +16,14 @@ use TechraysLabs\Webhooker\Models\WebhookEvent;
  */
 class ReplayCommand extends Command
 {
-    protected $signature = 'webhook:replay {event_id : The ID of the webhook event to replay}';
+    protected $signature = 'webhook:replay {event_id : The ID of the webhook event to replay} {--force : Bypass circuit breaker check}';
 
     protected $description = 'Replay a webhook event by re-dispatching it to the queue';
 
     public function handle(WebhookRepository $repository): int
     {
         $eventId = (int) $this->argument('event_id');
+        $force = (bool) $this->option('force');
         $event = $repository->findEvent($eventId);
 
         if ($event === null) {
@@ -42,7 +43,7 @@ class ReplayCommand extends Command
             ProcessInboundWebhookJob::dispatch($event->id);
             $this->info("Inbound webhook event #{$eventId} has been queued for reprocessing.");
         } else {
-            DispatchWebhookJob::dispatch($event->id);
+            DispatchWebhookJob::dispatch($event->id, $force);
             $this->info("Outbound webhook event #{$eventId} has been queued for replay.");
         }
 

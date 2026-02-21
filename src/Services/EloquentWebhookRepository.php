@@ -133,4 +133,18 @@ class EloquentWebhookRepository implements WebhookRepository
             ->where('event_name', $eventName)
             ->exists();
     }
+
+    // Tags
+
+    /**
+     * @return Collection<int, WebhookEndpoint>
+     */
+    public function getEndpointsByTag(string $tag): Collection
+    {
+        return WebhookEndpoint::where('is_active', true)
+            ->whereHas('tags', function ($query) use ($tag) {
+                $query->where('tag', $tag);
+            })
+            ->get();
+    }
 }

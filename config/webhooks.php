@@ -138,6 +138,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Circuit Breaker Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Controls the circuit breaker pattern for failing endpoints. When an
+    | endpoint fails too many times consecutively, the circuit opens and
+    | pauses deliveries until a cooldown period has passed.
+    |
+    */
+
+    'circuit_breaker' => [
+        'enabled' => true,
+        'failure_threshold' => 10,
+        'cooldown_seconds' => 300,
+        'success_threshold' => 2,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Logging Configuration
     |--------------------------------------------------------------------------
     |
@@ -151,6 +169,88 @@ return [
         'log_payload' => false,
         'log_headers' => false,
         'log_level' => 'info',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Debug Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Enable verbose debug mode for development environments.
+    | WARNING: Do not enable in production.
+    |
+    */
+
+    'debug' => [
+        'enabled' => env('WEBHOOK_DEBUG', false),
+        'log_full_payload' => false,
+        'log_full_headers' => false,
+        'log_full_response_body' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rate Limiting Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Rate limit outbound webhook deliveries per endpoint to prevent
+    | overwhelming destination servers. Uses Laravel's RateLimiter.
+    |
+    */
+
+    'rate_limiting' => [
+        'enabled' => false,
+        'default_per_minute' => 60,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Payload Validation Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Define validation schemas for outbound webhook payloads. Uses Laravel's
+    | Validator. Invalid payloads throw InvalidWebhookPayloadException.
+    |
+    */
+
+    'payload_validation' => [
+        'enabled' => false,
+        'schemas' => [
+            // 'order.created' => [
+            //     'order_id' => 'required|integer',
+            //     'amount' => 'required|numeric',
+            // ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Inbound Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Controls inbound webhook processing, including IP allowlisting.
+    |
+    */
+
+    'inbound' => [
+        'ip_allowlist' => [
+            'enabled' => false,
+            'global' => [],
+            'trust_proxy' => false,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Secret Rotation Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Grace period in hours for accepting the previous secret after rotation.
+    |
+    */
+
+    'secret_rotation' => [
+        'grace_period_hours' => 24,
     ],
 
 ];

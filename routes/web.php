@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use TechraysLabs\Webhooker\Http\Controllers\DashboardController;
 use TechraysLabs\Webhooker\Http\Controllers\InboundWebhookController;
+use TechraysLabs\Webhooker\Http\Middleware\CheckIpAllowlist;
 use TechraysLabs\Webhooker\Http\Middleware\VerifyWebhookSignature;
 
 $dashboardConfig = config('webhooks.dashboard', []);
@@ -32,5 +33,5 @@ Route::prefix($prefix)
 // Inbound webhook receiver route (no auth, uses signature verification)
 Route::post('/api/webhooks/inbound/{endpoint}', InboundWebhookController::class)
     ->where('endpoint', 'ep_[a-zA-Z0-9]+')
-    ->middleware(VerifyWebhookSignature::class)
+    ->middleware([CheckIpAllowlist::class, VerifyWebhookSignature::class])
     ->name('webhooker.inbound');

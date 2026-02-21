@@ -239,6 +239,7 @@ class WebhookEventsTest extends TestCase
             app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
             app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
             app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
+            app(\TechraysLabs\Webhooker\Contracts\CircuitBreaker::class),
         );
     }
 }

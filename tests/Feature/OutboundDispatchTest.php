@@ -119,6 +119,7 @@ class OutboundDispatchTest extends TestCase
             app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
             app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
             app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
+            app(\TechraysLabs\Webhooker\Contracts\CircuitBreaker::class),
         );
 
         $event->refresh();
@@ -162,6 +163,7 @@ class OutboundDispatchTest extends TestCase
             app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
             app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
             app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
+            app(\TechraysLabs\Webhooker\Contracts\CircuitBreaker::class),
         );
 
         $event->refresh();
@@ -202,6 +204,7 @@ class OutboundDispatchTest extends TestCase
             app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
             app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
             app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
+            app(\TechraysLabs\Webhooker\Contracts\CircuitBreaker::class),
         );
 
         $event->refresh();
@@ -234,6 +237,7 @@ class OutboundDispatchTest extends TestCase
             app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
             app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
             app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
+            app(\TechraysLabs\Webhooker\Contracts\CircuitBreaker::class),
         );
 
         $event->refresh();
@@ -268,6 +272,7 @@ class OutboundDispatchTest extends TestCase
             app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
             app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
             app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
+            app(\TechraysLabs\Webhooker\Contracts\CircuitBreaker::class),
         );
 
         Http::assertSent(function ($request) use ($event, $endpoint) {

@@ -109,4 +109,13 @@ interface WebhookRepository
      * Check if an inbound event with the given name and endpoint already exists.
      */
     public function inboundEventExists(int $endpointId, string $eventName): bool;
+
+    // Tags
+
+    /**
+     * Get active endpoints that have a specific tag.
+     *
+     * @return Collection<int, WebhookEndpoint>
+     */
+    public function getEndpointsByTag(string $tag): Collection;
 }

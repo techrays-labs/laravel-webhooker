@@ -6,6 +6,7 @@ namespace TechraysLabs\Webhooker\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\Response;
 use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;
@@ -40,11 +41,30 @@ class VerifyWebhookSignature
         $payload = $request->getContent();
 
         if (! $this->signer->verify($payload, $endpoint->secret, $signature)) {
+            // Check previous secret during grace period
+            if ($this->isWithinGracePeriod($endpoint)
+                && $this->signer->verify($payload, $endpoint->previous_secret, $signature)) {
+                $request->attributes->set('webhook_endpoint', $endpoint);
+
+                return $next($request);
+            }
+
             return response()->json(['error' => 'Invalid signature.'], 401);
         }
 
         $request->attributes->set('webhook_endpoint', $endpoint);
 
         return $next($request);
+    }
+
+    private function isWithinGracePeriod(WebhookEndpoint $endpoint): bool
+    {
+        if ($endpoint->previous_secret === null || $endpoint->secret_rotated_at === null) {
+            return false;
+        }
+
+        $graceHours = (int) config('webhooks.secret_rotation.grace_period_hours', 24);
+
+        return $endpoint->secret_rotated_at->addHours($graceHours)->isFuture();
     }
 }

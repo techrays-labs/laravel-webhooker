@@ -5,15 +5,25 @@ declare(strict_types=1);
 namespace TechraysLabs\Webhooker;
 
 use Illuminate\Support\ServiceProvider;
+use TechraysLabs\Webhooker\Commands\CircuitResetCommand;
+use TechraysLabs\Webhooker\Commands\CircuitStatusCommand;
+use TechraysLabs\Webhooker\Commands\EndpointDisableCommand;
+use TechraysLabs\Webhooker\Commands\EndpointEnableCommand;
 use TechraysLabs\Webhooker\Commands\EndpointListCommand;
 use TechraysLabs\Webhooker\Commands\HealthCommand;
 use TechraysLabs\Webhooker\Commands\PruneCommand;
 use TechraysLabs\Webhooker\Commands\ReplayCommand;
+use TechraysLabs\Webhooker\Commands\SecretRotateCommand;
+use TechraysLabs\Webhooker\Commands\SimulateCommand;
+use TechraysLabs\Webhooker\Contracts\CircuitBreaker;
 use TechraysLabs\Webhooker\Contracts\InboundProcessor;
 use TechraysLabs\Webhooker\Contracts\RetryStrategy;
 use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
 use TechraysLabs\Webhooker\Contracts\WebhookMetrics;
+use TechraysLabs\Webhooker\Contracts\PayloadValidator;
 use TechraysLabs\Webhooker\Contracts\WebhookRepository;
+use TechraysLabs\Webhooker\Services\CacheCircuitBreaker;
+use TechraysLabs\Webhooker\Services\ConfigPayloadValidator;
 use TechraysLabs\Webhooker\Services\DefaultInboundProcessor;
 use TechraysLabs\Webhooker\Services\EloquentWebhookMetrics;
 use TechraysLabs\Webhooker\Services\EloquentWebhookRepository;
@@ -42,6 +52,8 @@ class WebhookerServiceProvider extends ServiceProvider
         $this->app->bind(SignatureGenerator::class, HmacSignatureGenerator::class);
         $this->app->bind(InboundProcessor::class, DefaultInboundProcessor::class);
         $this->app->bind(WebhookMetrics::class, EloquentWebhookMetrics::class);
+        $this->app->bind(CircuitBreaker::class, CacheCircuitBreaker::class);
+        $this->app->bind(PayloadValidator::class, ConfigPayloadValidator::class);
     }
 
     /**
@@ -75,6 +87,12 @@ class WebhookerServiceProvider extends ServiceProvider
                 ReplayCommand::class,
                 EndpointListCommand::class,
                 HealthCommand::class,
+                CircuitStatusCommand::class,
+                CircuitResetCommand::class,
+                EndpointDisableCommand::class,
+                EndpointEnableCommand::class,
+                SimulateCommand::class,
+                SecretRotateCommand::class,
             ]);
         }
     }
