@@ -75,6 +75,19 @@
             <label for="event_name">Event Name</label>
             <input type="text" name="event_name" id="event_name" value="{{ $filters['event_name'] ?? '' }}" placeholder="Search...">
         </div>
+        @if(isset($tags) && $tags->isNotEmpty())
+        <div>
+            <label for="tag">Tag</label>
+            <select name="tag" id="tag">
+                <option value="">All</option>
+                @foreach($tags as $tag)
+                    <option value="{{ $tag }}" {{ ($filters['tag'] ?? '') === $tag ? 'selected' : '' }}>
+                        {{ $tag }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        @endif
         <button type="submit">Filter</button>
     </form>
 </div>

@@ -321,4 +321,66 @@ class DashboardV2Test extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Details');
     }
+
+    public function test_events_index_filters_by_tag(): void
+    {
+        $endpoint1 = WebhookEndpoint::create([
+            'name' => 'Payments',
+            'url' => 'https://example.com/payments',
+            'direction' => 'outbound',
+            'secret' => 'secret',
+            'is_active' => true,
+            'timeout_seconds' => 30,
+        ]);
+        $endpoint1->attachTag('payments');
+
+        $endpoint2 = WebhookEndpoint::create([
+            'name' => 'Notifications',
+            'url' => 'https://example.com/notifications',
+            'direction' => 'outbound',
+            'secret' => 'secret',
+            'is_active' => true,
+            'timeout_seconds' => 30,
+        ]);
+        $endpoint2->attachTag('notifications');
+
+        WebhookEvent::create([
+            'endpoint_id' => $endpoint1->id,
+            'event_name' => 'payment.received',
+            'payload' => ['id' => 1],
+            'status' => 'delivered',
+            'attempts_count' => 1,
+        ]);
+
+        WebhookEvent::create([
+            'endpoint_id' => $endpoint2->id,
+            'event_name' => 'notification.sent',
+            'payload' => ['id' => 2],
+            'status' => 'delivered',
+            'attempts_count' => 1,
+        ]);
+
+        // Filter by tag
+        $response = $this->get(route('webhooker.events.index', ['tag' => 'payments']));
+        $response->assertStatus(200);
+        $response->assertSee('payment.received');
+        $response->assertDontSee('notification.sent');
+    }
+
+    public function test_events_index_shows_tag_filter_dropdown(): void
+    {
+        $endpoint = WebhookEndpoint::create([
+            'name' => 'Test',
+            'url' => 'https://example.com/hook',
+            'direction' => 'outbound',
+            'secret' => 'secret',
+            'is_active' => true,
+            'timeout_seconds' => 30,
+        ]);
+        $endpoint->attachTag('billing');
+
+        $response = $this->get(route('webhooker.events.index'));
+        $response->assertStatus(200);
+        $response->assertSee('billing');
+    }
 }

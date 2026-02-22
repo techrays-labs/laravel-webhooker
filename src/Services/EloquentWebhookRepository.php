@@ -100,6 +100,12 @@ class EloquentWebhookRepository implements WebhookRepository
             $query->where('event_name', 'like', '%'.$filters['event_name'].'%');
         }
 
+        if (! empty($filters['tag'])) {
+            $query->whereHas('endpoint.tags', function ($q) use ($filters) {
+                $q->where('tag', $filters['tag']);
+            });
+        }
+
         return $query->paginate($perPage);
     }
 

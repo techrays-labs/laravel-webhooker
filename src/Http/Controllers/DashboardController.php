@@ -30,9 +30,10 @@ class DashboardController extends Controller
      */
     public function events(Request $request): View
     {
-        $filters = $request->only(['status', 'endpoint_id', 'event_name']);
+        $filters = $request->only(['status', 'endpoint_id', 'event_name', 'tag']);
         $events = $this->repository->paginateEvents($filters, 20);
         $endpoints = $this->repository->getActiveEndpoints();
+        $tags = \TechraysLabs\Webhooker\Models\WebhookEndpointTag::distinct()->pluck('tag');
 
         $metrics = app(WebhookMetrics::class);
         $stats = $metrics->summary('outbound', Carbon::now()->subHours(24));
@@ -58,7 +59,7 @@ class DashboardController extends Controller
         /** @var view-string $view */
         $view = 'webhooker::events.index';
 
-        return view($view, compact('events', 'filters', 'endpoints', 'stats', 'healthCounts', 'openCircuits', 'successRate'));
+        return view($view, compact('events', 'filters', 'endpoints', 'tags', 'stats', 'healthCounts', 'openCircuits', 'successRate'));
     }
 
     /**
