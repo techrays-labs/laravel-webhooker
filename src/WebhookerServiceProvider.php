@@ -7,6 +7,7 @@ namespace TechraysLabs\Webhooker;
 use Illuminate\Support\ServiceProvider;
 use TechraysLabs\Webhooker\Commands\CircuitResetCommand;
 use TechraysLabs\Webhooker\Commands\CircuitStatusCommand;
+use TechraysLabs\Webhooker\Commands\CleanExpiredSecretsCommand;
 use TechraysLabs\Webhooker\Commands\EndpointDisableCommand;
 use TechraysLabs\Webhooker\Commands\EndpointEnableCommand;
 use TechraysLabs\Webhooker\Commands\EndpointListCommand;
@@ -61,6 +62,8 @@ class WebhookerServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->warnIfDebugInProduction();
+
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         if ($this->app['config']->get('webhooks.dashboard.enabled', true)) {
@@ -93,7 +96,20 @@ class WebhookerServiceProvider extends ServiceProvider
                 EndpointEnableCommand::class,
                 SimulateCommand::class,
                 SecretRotateCommand::class,
+                CleanExpiredSecretsCommand::class,
             ]);
+        }
+    }
+
+    /**
+     * Log a warning if webhook debug mode is enabled in a production environment.
+     */
+    private function warnIfDebugInProduction(): void
+    {
+        if ($this->app['config']->get('webhooks.debug.enabled', false)
+            && $this->app->environment('production')) {
+            $logger = new \TechraysLabs\Webhooker\Support\WebhookLogger;
+            $logger->warning('Webhook debug mode is enabled in production. This should be disabled for security and performance.');
         }
     }
 }
