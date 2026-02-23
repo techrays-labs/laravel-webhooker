@@ -7,7 +7,7 @@ namespace TechraysLabs\Webhooker\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
 use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
-use TechraysLabs\Webhooker\Models\WebhookEndpoint;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 
 /**
  * Artisan command to simulate inbound webhook deliveries for local development.
@@ -22,7 +22,7 @@ class SimulateCommand extends Command
 
     protected $description = 'Simulate an inbound webhook delivery for local development';
 
-    public function handle(SignatureGenerator $signer): int
+    public function handle(SignatureGenerator $signer, WebhookRepository $repository): int
     {
         $type = $this->argument('type');
         $endpointToken = $this->option('endpoint');
@@ -33,7 +33,7 @@ class SimulateCommand extends Command
             return self::FAILURE;
         }
 
-        $endpoint = WebhookEndpoint::where('route_token', $endpointToken)->first();
+        $endpoint = $repository->findEndpointByRouteToken($endpointToken);
 
         if ($endpoint === null) {
             $this->error("Endpoint with token '{$endpointToken}' not found.");

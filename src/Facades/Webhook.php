@@ -21,6 +21,9 @@ use TechraysLabs\Webhooker\Webhooker;
  * @method static \TechraysLabs\Webhooker\Models\WebhookEvent|null retryLast()
  * @method static \TechraysLabs\Webhooker\DTOs\MetricsSummary stats(string $direction = 'outbound')
  * @method static string rotateSecret(int $endpointId)
+ * @method static \TechraysLabs\Webhooker\Models\WebhookBatch dispatchBatch(array $endpointIds, string $eventName, array $payload, array $options = [])
+ * @method static \TechraysLabs\Webhooker\Models\WebhookBatch broadcastBatch(string $eventName, array $payload, array $options = [])
+ * @method static \TechraysLabs\Webhooker\Models\WebhookBatch|null batchStatus(string $batchId)
  *
  * @see \TechraysLabs\Webhooker\Webhooker
  */

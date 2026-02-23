@@ -33,7 +33,7 @@ class DashboardController extends Controller
         $filters = $request->only(['status', 'endpoint_id', 'event_name', 'tag']);
         $events = $this->repository->paginateEvents($filters, 20);
         $endpoints = $this->repository->getActiveEndpoints();
-        $tags = \TechraysLabs\Webhooker\Models\WebhookEndpointTag::distinct()->pluck('tag');
+        $tags = $this->repository->getAllTags();
 
         $metrics = app(WebhookMetrics::class);
         $stats = $metrics->summary('outbound', Carbon::now()->subHours(24));
@@ -105,36 +105,26 @@ class DashboardController extends Controller
             abort(404);
         }
 
-        $recentEvents = WebhookEvent::where('endpoint_id', $endpoint)
-            ->orderByDesc('created_at')
-            ->paginate(20);
+        $recentEvents = $this->repository->getRecentEventsForEndpoint($endpoint, 20);
 
         $circuitBreaker = app(CircuitBreaker::class);
         $circuitState = $circuitBreaker->getState($endpointModel);
         $health = app(WebhookMetrics::class)->endpointHealth($endpointModel->id);
 
         // Build 7-day sparkline data
-        $sparkline = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $dayStart = Carbon::now()->subDays($i)->startOfDay();
-            $dayEnd = Carbon::now()->subDays($i)->endOfDay();
-
-            $dayTotal = WebhookEvent::where('endpoint_id', $endpoint)
-                ->whereBetween('created_at', [$dayStart, $dayEnd])
-                ->count();
-
-            $daySuccess = WebhookEvent::where('endpoint_id', $endpoint)
-                ->where('status', WebhookEvent::STATUS_DELIVERED)
-                ->whereBetween('created_at', [$dayStart, $dayEnd])
-                ->count();
-
-            $sparkline[] = [
-                'date' => $dayStart->format('M d'),
-                'total' => $dayTotal,
-                'success' => $daySuccess,
-                'rate' => $dayTotal > 0 ? round(($daySuccess / $dayTotal) * 100) : 0,
+        $sparklineData = $this->repository->getEventCountsForEndpointByDay(
+            $endpoint,
+            Carbon::now()->subDays(6)->startOfDay(),
+            Carbon::now()->endOfDay(),
+        );
+        $sparkline = $sparklineData->map(function ($day) {
+            return [
+                'date' => $day['date'],
+                'total' => $day['total'],
+                'success' => $day['success'],
+                'rate' => $day['total'] > 0 ? round(($day['success'] / $day['total']) * 100) : 0,
             ];
-        }
+        })->toArray();
 
         /** @var view-string $view */
         $view = 'webhooker::endpoints.show';
@@ -197,6 +187,6 @@ class DashboardController extends Controller
      */
     private function bulkDelete(array $eventIds): void
     {
-        WebhookEvent::whereIn('id', $eventIds)->delete();
+        $this->repository->deleteEvents(array_map('intval', $eventIds));
     }
 }

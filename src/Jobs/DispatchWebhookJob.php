@@ -16,11 +16,14 @@ use Illuminate\Support\Facades\RateLimiter;
 use TechraysLabs\Webhooker\Contracts\CircuitBreaker;
 use TechraysLabs\Webhooker\Contracts\RetryStrategy;
 use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
+use TechraysLabs\Webhooker\Contracts\WebhookLock;
 use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 use TechraysLabs\Webhooker\Events\WebhookFailed;
+use TechraysLabs\Webhooker\Events\WebhookMovedToDeadLetter;
 use TechraysLabs\Webhooker\Events\WebhookRetriesExhausted;
 use TechraysLabs\Webhooker\Events\WebhookSending;
 use TechraysLabs\Webhooker\Events\WebhookSent;
+use TechraysLabs\Webhooker\Models\WebhookBatch;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
 use TechraysLabs\Webhooker\Strategies\ExponentialBackoffRetry;
 use TechraysLabs\Webhooker\Support\WebhookLogger;
@@ -47,6 +50,29 @@ class DispatchWebhookJob implements ShouldQueue
     }
 
     public function handle(
+        WebhookRepository $repository,
+        SignatureGenerator $signer,
+        RetryStrategy $retryStrategy,
+        CircuitBreaker $circuitBreaker,
+        WebhookLock $lock,
+    ): void {
+        // Distributed lock for horizontal scaling
+        if (config('webhooks.scaling.enabled', false)) {
+            if (! $lock->acquireEventLock($this->eventId)) {
+                return;
+            }
+        }
+
+        try {
+            $this->processEvent($repository, $signer, $retryStrategy, $circuitBreaker);
+        } finally {
+            if (config('webhooks.scaling.enabled', false)) {
+                $lock->releaseEventLock($this->eventId);
+            }
+        }
+    }
+
+    private function processEvent(
         WebhookRepository $repository,
         SignatureGenerator $signer,
         RetryStrategy $retryStrategy,
@@ -184,6 +210,8 @@ class DispatchWebhookJob implements ShouldQueue
 
             WebhookSent::dispatch($event->fresh(), $endpoint, $attempt);
 
+            $this->updateBatchCounters($repository, $event, 'success');
+
             return;
         }
 
@@ -229,6 +257,65 @@ class DispatchWebhookJob implements ShouldQueue
             ]);
 
             WebhookRetriesExhausted::dispatch($event->fresh(), $endpoint);
+
+            // Dead-letter queue auto-move
+            if (config('webhooks.dead_letter.enabled', false)
+                && config('webhooks.dead_letter.auto_move', true)) {
+                $reason = "Retries exhausted after {$attemptNumber} attempt(s): " . ($errorMessage ?? 'Unknown error');
+                $repository->moveToDeadLetter($event, $reason);
+                WebhookMovedToDeadLetter::dispatch($event->fresh(), $endpoint, $reason);
+            }
+
+            $this->updateBatchCounters($repository, $event, 'failure');
+        }
+    }
+
+    /**
+     * Update batch counters if the event belongs to a batch.
+     */
+    private function updateBatchCounters(WebhookRepository $repository, WebhookEvent $event, string $outcome): void
+    {
+        if ($event->batch_id === null) {
+            return;
+        }
+
+        $batch = $repository->findBatch($event->batch_id);
+        if ($batch === null) {
+            return;
+        }
+
+        $updates = match ($outcome) {
+            'success' => ['successful_count' => $batch->successful_count + 1, 'pending_count' => max(0, $batch->pending_count - 1)],
+            'failure' => ['failed_count' => $batch->failed_count + 1, 'pending_count' => max(0, $batch->pending_count - 1)],
+            default => [],
+        };
+
+        if (empty($updates)) {
+            return;
+        }
+
+        $repository->updateBatch($batch, $updates);
+
+        // Check if batch is complete
+        $batch = $batch->fresh();
+        if ($batch && ($batch->successful_count + $batch->failed_count) >= $batch->total_events) {
+            $status = $batch->failed_count === 0
+                ? WebhookBatch::STATUS_COMPLETED
+                : ($batch->successful_count === 0
+                    ? WebhookBatch::STATUS_FAILED
+                    : WebhookBatch::STATUS_PARTIAL_FAILURE);
+
+            $repository->updateBatch($batch, [
+                'status' => $status,
+                'pending_count' => 0,
+                'completed_at' => Carbon::now(),
+            ]);
+
+            if ($status === WebhookBatch::STATUS_COMPLETED) {
+                \TechraysLabs\Webhooker\Events\WebhookBatchCompleted::dispatch($batch->fresh());
+            } elseif ($status === WebhookBatch::STATUS_PARTIAL_FAILURE) {
+                \TechraysLabs\Webhooker\Events\WebhookBatchPartiallyFailed::dispatch($batch->fresh());
+            }
         }
     }
 

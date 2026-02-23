@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Partition stub for webhook_attempts table.
+ *
+ * This stub is intended to be customized for your specific database engine.
+ * Publish it with: php artisan vendor:publish --tag=webhooker-stubs
+ *
+ * MySQL example:
+ *   ALTER TABLE webhook_attempts PARTITION BY RANGE (TO_DAYS(attempted_at)) (
+ *       PARTITION p202401 VALUES LESS THAN (TO_DAYS('2024-02-01')),
+ *       PARTITION p202402 VALUES LESS THAN (TO_DAYS('2024-03-01')),
+ *       PARTITION p_future VALUES LESS THAN MAXVALUE
+ *   );
+ *
+ * PostgreSQL example:
+ *   CREATE TABLE webhook_attempts (
+ *       ...columns...
+ *   ) PARTITION BY RANGE (attempted_at);
+ *
+ *   CREATE TABLE webhook_attempts_p202401
+ *       PARTITION OF webhook_attempts
+ *       FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
+ *
+ * Use the webhook:partition:create and webhook:partition:drop commands
+ * to manage partitions automatically.
+ */

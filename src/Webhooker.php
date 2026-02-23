@@ -11,6 +11,7 @@ use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 use TechraysLabs\Webhooker\DTOs\MetricsSummary;
 use TechraysLabs\Webhooker\Events\EndpointSecretRotated;
 use TechraysLabs\Webhooker\Jobs\DispatchWebhookJob;
+use TechraysLabs\Webhooker\Models\WebhookBatch;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
 
@@ -45,7 +46,7 @@ class Webhooker
         // Idempotency check
         $idempotencyKey = $options['idempotency_key'] ?? null;
         if ($idempotencyKey !== null) {
-            $existing = WebhookEvent::where('idempotency_key', $idempotencyKey)->first();
+            $existing = $this->repository->findEventByIdempotencyKey($idempotencyKey);
             if ($existing !== null) {
                 return $existing;
             }
@@ -138,7 +139,7 @@ class Webhooker
             return;
         }
 
-        $endpoint->update([
+        $this->repository->updateEndpoint($endpoint, [
             'is_active' => false,
             'disabled_at' => now(),
             'disabled_reason' => $reason,
@@ -158,7 +159,7 @@ class Webhooker
             return;
         }
 
-        $endpoint->update([
+        $this->repository->updateEndpoint($endpoint, [
             'is_active' => true,
             'disabled_at' => null,
             'disabled_reason' => null,
@@ -219,9 +220,7 @@ class Webhooker
      */
     public function lastFailed(): ?WebhookEvent
     {
-        return WebhookEvent::where('status', WebhookEvent::STATUS_FAILED)
-            ->orderByDesc('id')
-            ->first();
+        return $this->repository->getLastFailedEvent();
     }
 
     /**
@@ -260,7 +259,7 @@ class Webhooker
 
         $newSecret = Str::random(64);
 
-        $endpoint->update([
+        $this->repository->updateEndpoint($endpoint, [
             'previous_secret' => $endpoint->secret,
             'secret_rotated_at' => now(),
             'secret' => $newSecret,
@@ -269,6 +268,71 @@ class Webhooker
         EndpointSecretRotated::dispatch($endpoint->fresh());
 
         return $newSecret;
+    }
+
+    /**
+     * Dispatch a batch of events to multiple endpoints.
+     *
+     * @param  array<int, int>  $endpointIds
+     * @param  string  $eventName
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $options  Optional: metadata
+     */
+    public function dispatchBatch(array $endpointIds, string $eventName, array $payload, array $options = []): WebhookBatch
+    {
+        $maxBatchSize = (int) config('webhooks.batching.max_batch_size', 1000);
+        $endpointIds = array_slice($endpointIds, 0, $maxBatchSize);
+
+        $batchId = (string) Str::uuid();
+        $batch = $this->repository->createBatch([
+            'batch_id' => $batchId,
+            'event_name' => $eventName,
+            'total_events' => count($endpointIds),
+            'pending_count' => count($endpointIds),
+            'status' => WebhookBatch::STATUS_PROCESSING,
+            'metadata' => $options['metadata'] ?? null,
+        ]);
+
+        foreach ($endpointIds as $endpointId) {
+            $event = $this->repository->createEvent([
+                'endpoint_id' => $endpointId,
+                'event_name' => $eventName,
+                'payload' => $payload,
+                'batch_id' => $batchId,
+                'status' => WebhookEvent::STATUS_PENDING,
+                'attempts_count' => 0,
+            ]);
+
+            DispatchWebhookJob::dispatch($event->id);
+        }
+
+        return $batch;
+    }
+
+    /**
+     * Broadcast an event as a batch to all active outbound endpoints.
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $options
+     */
+    public function broadcastBatch(string $eventName, array $payload, array $options = []): WebhookBatch
+    {
+        $endpoints = $this->repository->getActiveEndpoints('outbound');
+
+        return $this->dispatchBatch(
+            $endpoints->pluck('id')->toArray(),
+            $eventName,
+            $payload,
+            $options,
+        );
+    }
+
+    /**
+     * Get the status of a batch.
+     */
+    public function batchStatus(string $batchId): ?WebhookBatch
+    {
+        return $this->repository->findBatch($batchId);
     }
 
     /**

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use TechraysLabs\Webhooker\Contracts\CircuitBreaker;
 use TechraysLabs\Webhooker\Contracts\RetryStrategy;
 use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
+use TechraysLabs\Webhooker\Contracts\WebhookLock;
 use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 use TechraysLabs\Webhooker\Jobs\DispatchWebhookJob;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;
@@ -51,6 +52,7 @@ class RateLimitingTest extends TestCase
             app(SignatureGenerator::class),
             app(RetryStrategy::class),
             app(CircuitBreaker::class),
+            app(WebhookLock::class),
         );
 
         $event->refresh();
@@ -90,6 +92,7 @@ class RateLimitingTest extends TestCase
             app(SignatureGenerator::class),
             app(RetryStrategy::class),
             app(CircuitBreaker::class),
+            app(WebhookLock::class),
         );
 
         // Event should still be pending (not delivered)
@@ -134,6 +137,7 @@ class RateLimitingTest extends TestCase
             app(SignatureGenerator::class),
             app(RetryStrategy::class),
             app(CircuitBreaker::class),
+            app(WebhookLock::class),
         );
 
         $event->refresh();

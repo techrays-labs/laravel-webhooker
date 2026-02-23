@@ -10,6 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use TechraysLabs\Webhooker\Contracts\InboundProcessor;
+use TechraysLabs\Webhooker\Contracts\WebhookLock;
 use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 use TechraysLabs\Webhooker\Events\InboundWebhookFailed;
 use TechraysLabs\Webhooker\Events\InboundWebhookProcessed;
@@ -38,7 +39,26 @@ class ProcessInboundWebhookJob implements ShouldQueue
     public function handle(
         WebhookRepository $repository,
         InboundProcessor $processor,
+        WebhookLock $lock,
     ): void {
+        // Distributed lock for horizontal scaling
+        if (config('webhooks.scaling.enabled', false)) {
+            if (! $lock->acquireEventLock($this->eventId)) {
+                return;
+            }
+        }
+
+        try {
+            $this->processEvent($repository, $processor);
+        } finally {
+            if (config('webhooks.scaling.enabled', false)) {
+                $lock->releaseEventLock($this->eventId);
+            }
+        }
+    }
+
+    private function processEvent(WebhookRepository $repository, InboundProcessor $processor): void
+    {
         $event = $repository->findEvent($this->eventId);
 
         if ($event === null || $event->isDelivered()) {

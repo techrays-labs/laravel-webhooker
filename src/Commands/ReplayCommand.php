@@ -9,7 +9,6 @@ use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 use TechraysLabs\Webhooker\Events\WebhookReplayRequested;
 use TechraysLabs\Webhooker\Jobs\DispatchWebhookJob;
 use TechraysLabs\Webhooker\Jobs\ProcessInboundWebhookJob;
-use TechraysLabs\Webhooker\Models\WebhookEndpoint;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
 
 /**
@@ -68,14 +67,14 @@ class ReplayCommand extends Command
 
     private function replayBulk(WebhookRepository $repository, ?string $status, ?string $endpointToken, bool $force): int
     {
-        $query = WebhookEvent::query();
+        $filters = [];
 
         if ($status !== null) {
-            $query->where('status', $status);
+            $filters['status'] = $status;
         }
 
         if ($endpointToken !== null) {
-            $endpoint = WebhookEndpoint::where('route_token', $endpointToken)->first();
+            $endpoint = $repository->findEndpointByRouteToken($endpointToken);
 
             if ($endpoint === null) {
                 $this->error("Endpoint with token '{$endpointToken}' not found.");
@@ -83,11 +82,11 @@ class ReplayCommand extends Command
                 return self::FAILURE;
             }
 
-            $query->where('endpoint_id', $endpoint->id);
+            $filters['endpoint_id'] = $endpoint->id;
         }
 
         $maxBatch = (int) config('webhooks.dashboard.max_bulk_size', 100);
-        $events = $query->limit($maxBatch)->get();
+        $events = $repository->getFilteredEvents($filters, $maxBatch);
 
         if ($events->isEmpty()) {
             $this->info('No matching events found.');

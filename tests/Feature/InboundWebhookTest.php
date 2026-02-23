@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Queue;
 use TechraysLabs\Webhooker\Jobs\ProcessInboundWebhookJob;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Contracts\WebhookLock;
 use TechraysLabs\Webhooker\Tests\TestCase;
 
 class InboundWebhookTest extends TestCase
@@ -172,6 +173,7 @@ class InboundWebhookTest extends TestCase
         $job->handle(
             app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
             app(\TechraysLabs\Webhooker\Contracts\InboundProcessor::class),
+            app(WebhookLock::class),
         );
 
         $event->refresh();

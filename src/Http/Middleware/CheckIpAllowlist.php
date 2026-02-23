@@ -7,6 +7,7 @@ namespace TechraysLabs\Webhooker\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;
 use TechraysLabs\Webhooker\Support\WebhookLogger;
 
@@ -15,6 +16,10 @@ use TechraysLabs\Webhooker\Support\WebhookLogger;
  */
 class CheckIpAllowlist
 {
+    public function __construct(
+        private readonly WebhookRepository $repository,
+    ) {}
+
     public function handle(Request $request, Closure $next): Response
     {
         if (! config('webhooks.inbound.ip_allowlist.enabled', false)) {
@@ -22,7 +27,7 @@ class CheckIpAllowlist
         }
 
         $endpointToken = $request->route('endpoint');
-        $endpoint = WebhookEndpoint::where('route_token', $endpointToken)->first();
+        $endpoint = $this->repository->findEndpointByRouteToken((string) $endpointToken);
 
         if ($endpoint === null) {
             return $next($request);

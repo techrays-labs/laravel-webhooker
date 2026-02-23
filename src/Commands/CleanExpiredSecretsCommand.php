@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace TechraysLabs\Webhooker\Commands;
 
 use Illuminate\Console\Command;
-use TechraysLabs\Webhooker\Models\WebhookEndpoint;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 
 /**
  * Artisan command to clean up expired previous secrets after the grace period.
@@ -19,19 +19,11 @@ class CleanExpiredSecretsCommand extends Command
 
     protected $description = 'Remove expired previous secrets that are past the grace period';
 
-    public function handle(): int
+    public function handle(WebhookRepository $repository): int
     {
         $graceHours = (int) config('webhooks.secret_rotation.grace_period_hours', 24);
 
-        $cutoff = now()->subHours($graceHours);
-
-        $count = WebhookEndpoint::whereNotNull('previous_secret')
-            ->whereNotNull('secret_rotated_at')
-            ->where('secret_rotated_at', '<', $cutoff)
-            ->update([
-                'previous_secret' => null,
-                'secret_rotated_at' => null,
-            ]);
+        $count = $repository->cleanExpiredSecrets($graceHours);
 
         $this->info("Cleaned up {$count} expired previous secret(s).");
 
