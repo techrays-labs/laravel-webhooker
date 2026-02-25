@@ -3,9 +3,8 @@
 [![GitHub Stars](https://img.shields.io/github/stars/techrays-labs/laravel-webhooker?style=social)](https://github.com/techrays-labs/laravel-webhooker/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/techrays-labs/laravel-webhooker?style=social)](https://github.com/techrays-labs/laravel-webhooker/network)
 [![Latest Version](https://img.shields.io/github/v/release/techrays-labs/laravel-webhooker)](https://github.com/techrays-labs/laravel-webhooker/releases)
-[![GitHub License](https://img.shields.io/github/license/techrays-labs/laravel-webhooker)](https://github.com/techrays-labs/laravel-webhooker/blob/master/LICENSE)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/techrays-labs/laravel-webhooker/tests.yml)](https://github.com/techrays-labs/laravel-webhooker/actions)
-[![License](https://img.shields.io/github/license/techrays-labs/laravel-webhooker)](LICENSE.md)
+[![GitHub License](https://img.shields.io/github/license/techrays-labs/laravel-webhooker)](https://github.com/techrays-labs/laravel-webhooker/blob/master/LICENSE)
 
 # Laravel Webhooker
 
