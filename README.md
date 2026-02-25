@@ -49,6 +49,16 @@ Webhooks are critical infrastructure, but building reliable webhook delivery is 
 - **Secret Rotation** - Rotate endpoint secrets with a configurable grace period
 - **Idempotency Keys** - Prevent duplicate outbound deliveries
 
+### Scaling & Reliability (v2.0)
+
+- **Storage Driver Abstraction** - Pluggable storage backends via Laravel's Manager pattern
+- **Dead-Letter Queue** - Auto-capture events that exhaust all retries for inspection and manual retry
+- **Event Batching** - Dispatch to multiple endpoints as a tracked batch with progress monitoring
+- **Endpoint Health History** - Periodic health snapshots for trend analysis over time
+- **Multi-Database Support** - Read/write connection separation for read replicas
+- **Table Partitioning** - MySQL (RANGE) and PostgreSQL (declarative) partitioning for high-volume tables
+- **Horizontal Scaling** - Distributed locking for safe multi-worker webhook processing
+
 ### Dashboard
 
 - **Stats Overview** - 24h event counts, success rate, average response time, endpoint health breakdown
@@ -383,6 +393,210 @@ Restrict inbound webhooks to known IPs:
 
 Per-endpoint allowlists can be set via the `allowed_ips` JSON column.
 
+## Storage Driver Abstraction
+
+Laravel Webhooker uses a pluggable storage layer based on Laravel's Manager pattern. The default driver is `eloquent`.
+
+```php
+// config/webhooks.php
+'storage' => [
+    'driver' => env('WEBHOOK_STORAGE_DRIVER', 'eloquent'),
+
+    'drivers' => [
+        'eloquent' => [
+            'connection' => null,
+            'read_connection' => null,
+        ],
+    ],
+],
+```
+
+### Custom storage drivers
+
+Extend the `WebhookStorageManager` to register your own drivers:
+
+```php
+use TechraysLabs\Webhooker\Storage\WebhookStorageManager;
+
+app(WebhookStorageManager::class)->extend('dynamodb', function ($app) {
+    return new DynamoDbWebhookRepository(config('webhooks.storage.drivers.dynamodb'));
+});
+```
+
+## Dead-Letter Queue
+
+Events that exhaust all retries can be automatically moved to a dead-letter queue for inspection and manual retry.
+
+```php
+// config/webhooks.php
+'dead_letter' => [
+    'enabled' => false,
+    'auto_move' => true,        // Auto-move after retries exhausted
+    'retention_days' => 90,     // DLQ retention before pruning
+],
+```
+
+### Managing the DLQ
+
+```bash
+# List dead-lettered events
+php artisan webhook:dead-letter list
+
+# Retry a specific dead-lettered event
+php artisan webhook:dead-letter retry {event_id}
+
+# Purge all dead-lettered events older than retention
+php artisan webhook:dead-letter purge
+
+# Count dead-lettered events
+php artisan webhook:dead-letter count
+```
+
+The `WebhookMovedToDeadLetter` event is fired when an event enters the DLQ.
+
+## Event Batching
+
+Dispatch the same event to multiple endpoints as a tracked batch:
+
+```php
+use TechraysLabs\Webhooker\Facades\Webhook;
+
+// Dispatch to specific endpoints
+$batch = Webhook::dispatchBatch([1, 2, 3], 'order.created', [
+    'order_id' => 12345,
+    'total' => 99.99,
+]);
+
+// Broadcast to all active outbound endpoints as a batch
+$batch = Webhook::broadcastBatch('order.shipped', [
+    'order_id' => 12345,
+    'tracking_number' => 'ABC123',
+]);
+
+// Check batch progress
+$batch = Webhook::batchStatus($batch->id);
+echo $batch->status;          // pending, processing, completed, partial_failure, failed
+echo $batch->success_count;
+echo $batch->failure_count;
+```
+
+```php
+// config/webhooks.php
+'batching' => [
+    'enabled' => true,
+    'max_batch_size' => 1000,
+    'allow_partial_failure' => true,
+],
+```
+
+## Endpoint Health History
+
+Capture periodic health snapshots for trend analysis:
+
+```php
+// config/webhooks.php
+'health_history' => [
+    'enabled' => false,
+    'snapshot_interval' => 60,   // Minutes between snapshots
+    'retention_days' => 90,
+],
+```
+
+Schedule the snapshot command:
+
+```php
+$schedule->command('webhook:health:snapshot')->hourly();
+```
+
+Access health history programmatically:
+
+```php
+use TechraysLabs\Webhooker\Contracts\WebhookMetrics;
+
+$metrics = app(WebhookMetrics::class);
+$history = $metrics->endpointHealthHistory($endpointId, days: 30);
+
+foreach ($history as $point) {
+    echo "{$point->date}: {$point->successRate}% ({$point->status})";
+}
+```
+
+## Multi-Database Support
+
+Route reads to a replica and writes to the primary database:
+
+```php
+// config/webhooks.php
+'storage' => [
+    'driver' => 'eloquent',
+
+    'drivers' => [
+        'eloquent' => [
+            'connection' => 'mysql',              // Primary for writes
+            'read_connection' => 'mysql-replica',  // Replica for reads
+        ],
+    ],
+],
+```
+
+All repository queries are automatically routed to the correct connection.
+
+## Table Partitioning
+
+For high-volume installations, partition the `webhook_events` and `webhook_attempts` tables:
+
+```php
+// config/webhooks.php
+'partitioning' => [
+    'enabled' => false,
+    'strategy' => 'monthly',
+    'tables' => ['webhook_events', 'webhook_attempts'],
+    'future_partitions' => 3,
+],
+```
+
+Publish the partition migration stubs:
+
+```bash
+php artisan vendor:publish --tag=webhooker-stubs
+```
+
+Manage partitions via Artisan:
+
+```bash
+# Create future partitions
+php artisan webhook:partition:create
+
+# Drop old partitions
+php artisan webhook:partition:drop --before=2025-01
+```
+
+Supports MySQL (RANGE partitioning) and PostgreSQL (declarative partitioning).
+
+## Horizontal Scaling
+
+For multi-worker deployments, enable distributed locking to prevent duplicate event processing:
+
+```php
+// config/webhooks.php
+'scaling' => [
+    'enabled' => false,
+    'lock_driver' => 'cache',
+    'lock_ttl' => 300,           // Lock timeout in seconds
+    'unique_jobs' => true,
+],
+```
+
+When enabled, each webhook job acquires a distributed lock before processing. This ensures that even with multiple queue workers, each event is processed exactly once.
+
+You can provide your own lock implementation by binding the `WebhookLock` contract:
+
+```php
+use TechraysLabs\Webhooker\Contracts\WebhookLock;
+
+$this->app->bind(WebhookLock::class, MyRedisLockProvider::class);
+```
+
 ## Testing
 
 Use the testing facade in your application's test suite:
@@ -455,6 +669,9 @@ The package fires native Laravel events at key lifecycle points:
 | `EndpointCircuitOpened` | Circuit breaker trips |
 | `EndpointCircuitClosed` | Circuit breaker recovers |
 | `EndpointSecretRotated` | Secret rotation completed |
+| `WebhookMovedToDeadLetter` | Event moved to dead-letter queue |
+| `WebhookBatchCompleted` | All events in a batch succeeded |
+| `WebhookBatchPartiallyFailed` | Batch completed with mixed results |
 
 ## CLI Commands
 
@@ -472,6 +689,10 @@ The package fires native Laravel events at key lifecycle points:
 | `webhook:simulate {type}` | Simulate inbound webhook delivery |
 | `webhook:secret:rotate {endpoint_id}` | Rotate endpoint secret |
 | `webhook:secret:cleanup` | Remove expired previous secrets |
+| `webhook:dead-letter list\|retry\|purge\|count` | Manage dead-letter queue |
+| `webhook:health:snapshot` | Capture endpoint health snapshots |
+| `webhook:partition:create` | Create future table partitions |
+| `webhook:partition:drop` | Drop old table partitions |
 
 ## Configuration Reference
 
@@ -541,24 +762,92 @@ return [
     'secret_rotation' => [
         'grace_period_hours' => 24,
     ],
+    'storage' => [
+        'driver' => env('WEBHOOK_STORAGE_DRIVER', 'eloquent'),
+        'drivers' => [
+            'eloquent' => [
+                'connection' => null,
+                'read_connection' => null,
+            ],
+        ],
+    ],
+    'dead_letter' => [
+        'enabled' => false,
+        'auto_move' => true,
+        'retention_days' => 90,
+    ],
+    'batching' => [
+        'enabled' => true,
+        'max_batch_size' => 1000,
+        'allow_partial_failure' => true,
+    ],
+    'health_history' => [
+        'enabled' => false,
+        'snapshot_interval' => 60,
+        'retention_days' => 90,
+    ],
+    'partitioning' => [
+        'enabled' => false,
+        'strategy' => 'monthly',
+        'tables' => ['webhook_events', 'webhook_attempts'],
+        'future_partitions' => 3,
+    ],
+    'scaling' => [
+        'enabled' => false,
+        'lock_driver' => 'cache',
+        'lock_ttl' => 300,
+        'unique_jobs' => true,
+    ],
 ];
+```
+
+## Upgrade Guide
+
+### Upgrading from v0.1.0 to v2.0.0
+
+v2.0.0 introduces breaking changes to the `WebhookRepository` contract, `DispatchWebhookJob`, and `ProcessInboundWebhookJob`. If you have custom implementations of these contracts, you will need to update them.
+
+1. Run the new migrations:
+
+```bash
+php artisan migrate
+```
+
+2. If you have a custom `WebhookRepository` implementation, add the new method signatures from the contract.
+
+3. If you dispatch jobs manually (outside the facade), update `handle()` calls to include the `WebhookLock` parameter.
+
+4. Review the new config sections added to `config/webhooks.php` and publish updated config if needed:
+
+```bash
+php artisan vendor:publish --tag=webhooker-config --force
 ```
 
 ## Roadmap
 
-### Current (v0.1.0)
+### v0.1.0 (Released)
 
-All features listed above are implemented and tested.
+Core webhook engine: outbound/inbound delivery, retry, signatures, circuit breaker, dashboard, tagging, rate limiting, payload validation, IP allowlist, secret rotation, idempotency, testing facade, debug mode.
 
-### Future (v2.0)
+### v2.0.0 (Released)
 
 - Storage driver abstraction
-- Table partitioning support
 - Dead-letter queue
-- Endpoint health scoring history
 - Event batching
+- Endpoint health history
 - Multi-database support
+- Table partitioning support
 - Horizontal scaling support
+
+### Future
+
+- Webhook event transforms (modify payload per endpoint)
+- Webhook event filtering (subscribe endpoints to specific event patterns)
+- GraphQL / REST API for programmatic management
+- Webhook delivery analytics dashboard
+- Webhook event schema registry
+- Real-time delivery monitoring via WebSockets
+- Plugin system for third-party integrations
 
 ## Contributing
 
