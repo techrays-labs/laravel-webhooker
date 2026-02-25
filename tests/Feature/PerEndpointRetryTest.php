@@ -7,6 +7,7 @@ namespace TechraysLabs\Webhooker\Tests\Feature;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use TechraysLabs\Webhooker\Contracts\RetryStrategy;
+use TechraysLabs\Webhooker\Contracts\WebhookLock;
 use TechraysLabs\Webhooker\Jobs\DispatchWebhookJob;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
@@ -55,6 +56,7 @@ class PerEndpointRetryTest extends TestCase
             app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
             app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
             app(\TechraysLabs\Webhooker\Contracts\CircuitBreaker::class),
+            app(WebhookLock::class),
         );
 
         $event->refresh();
@@ -89,6 +91,7 @@ class PerEndpointRetryTest extends TestCase
             app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
             app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
             app(\TechraysLabs\Webhooker\Contracts\CircuitBreaker::class),
+            app(WebhookLock::class),
         );
 
         $event->refresh();
@@ -124,6 +127,7 @@ class PerEndpointRetryTest extends TestCase
             app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
             app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
             app(\TechraysLabs\Webhooker\Contracts\CircuitBreaker::class),
+            app(WebhookLock::class),
         );
 
         $event->refresh();
@@ -159,6 +163,7 @@ class PerEndpointRetryTest extends TestCase
             app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
             app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
             app(\TechraysLabs\Webhooker\Contracts\CircuitBreaker::class),
+            app(WebhookLock::class),
         );
 
         $event->refresh();

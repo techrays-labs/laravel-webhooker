@@ -18,6 +18,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property \Illuminate\Support\Carbon|null $last_attempt_at
  * @property \Illuminate\Support\Carbon|null $next_retry_at
  * @property string|null $idempotency_key
+ * @property string|null $batch_id
+ * @property string|null $dead_letter_reason
+ * @property \Illuminate\Support\Carbon|null $dead_lettered_at
  * @property \Illuminate\Support\Carbon $created_at
  * @property \Illuminate\Support\Carbon $updated_at
  */
@@ -30,10 +33,13 @@ class WebhookEvent extends Model
         'event_name',
         'payload',
         'idempotency_key',
+        'batch_id',
         'status',
         'attempts_count',
         'last_attempt_at',
         'next_retry_at',
+        'dead_letter_reason',
+        'dead_lettered_at',
     ];
 
     protected $casts = [
@@ -41,6 +47,7 @@ class WebhookEvent extends Model
         'attempts_count' => 'integer',
         'last_attempt_at' => 'datetime',
         'next_retry_at' => 'datetime',
+        'dead_lettered_at' => 'datetime',
     ];
 
     public const STATUS_PENDING = 'pending';
@@ -50,6 +57,8 @@ class WebhookEvent extends Model
     public const STATUS_DELIVERED = 'delivered';
 
     public const STATUS_FAILED = 'failed';
+
+    public const STATUS_DEAD_LETTER = 'dead_letter';
 
     /**
      * @return BelongsTo<WebhookEndpoint, $this>
@@ -89,5 +98,21 @@ class WebhookEvent extends Model
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
+    }
+
+    /**
+     * Determine if the event is in the dead-letter queue.
+     */
+    public function isDeadLetter(): bool
+    {
+        return $this->status === self::STATUS_DEAD_LETTER;
+    }
+
+    /**
+     * @return BelongsTo<WebhookBatch, $this>
+     */
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(WebhookBatch::class, 'batch_id', 'batch_id');
     }
 }

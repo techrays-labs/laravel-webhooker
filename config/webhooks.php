@@ -254,4 +254,109 @@ return [
         'grace_period_hours' => 24,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Storage Driver Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Controls which storage backend is used for webhook data. The default
+    | driver is 'eloquent'. Custom drivers can be registered by extending
+    | the WebhookStorageManager.
+    |
+    */
+
+    'storage' => [
+        'driver' => env('WEBHOOK_STORAGE_DRIVER', 'eloquent'),
+
+        'drivers' => [
+            'eloquent' => [
+                // Primary database connection (null = default)
+                'connection' => null,
+                // Read replica connection (null = same as primary)
+                'read_connection' => null,
+            ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dead-Letter Queue Configuration
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, webhook events that exhaust all retries are automatically
+    | moved to a dead-letter queue for inspection and manual retry.
+    |
+    */
+
+    'dead_letter' => [
+        'enabled' => false,
+        'auto_move' => true,
+        'retention_days' => 90,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Event Batching Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Controls batch dispatching of webhook events to multiple endpoints.
+    |
+    */
+
+    'batching' => [
+        'enabled' => true,
+        'max_batch_size' => 1000,
+        'allow_partial_failure' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Health History Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Controls periodic health snapshot recording for endpoints. Run
+    | webhook:health:snapshot on a schedule to capture health data over time.
+    |
+    */
+
+    'health_history' => [
+        'enabled' => false,
+        'snapshot_interval' => 60,
+        'retention_days' => 90,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Table Partitioning Configuration
+    |--------------------------------------------------------------------------
+    |
+    | For high-volume installations, enables table partitioning support
+    | for the webhook_events and webhook_attempts tables.
+    |
+    */
+
+    'partitioning' => [
+        'enabled' => false,
+        'strategy' => 'monthly',
+        'tables' => ['webhook_events', 'webhook_attempts'],
+        'future_partitions' => 3,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Horizontal Scaling Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Controls distributed locking and unique job processing for
+    | multi-worker deployments.
+    |
+    */
+
+    'scaling' => [
+        'enabled' => false,
+        'lock_driver' => 'cache',
+        'lock_ttl' => 300,
+        'unique_jobs' => true,
+    ],
+
 ];

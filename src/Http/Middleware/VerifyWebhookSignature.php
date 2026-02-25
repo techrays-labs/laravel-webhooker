@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use TechraysLabs\Webhooker\Contracts\SignatureGenerator;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;
 
 /**
@@ -17,12 +18,13 @@ class VerifyWebhookSignature
 {
     public function __construct(
         private readonly SignatureGenerator $signer,
+        private readonly WebhookRepository $repository,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
     {
         $routeToken = (string) $request->route('endpoint');
-        $endpoint = WebhookEndpoint::where('route_token', $routeToken)->first();
+        $endpoint = $this->repository->findEndpointByRouteToken($routeToken);
 
         if ($endpoint === null || ! $endpoint->is_active || ! $endpoint->isInbound()) {
             return response()->json(['error' => 'Not found.'], 404);

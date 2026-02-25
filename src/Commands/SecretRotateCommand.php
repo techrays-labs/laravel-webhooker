@@ -31,7 +31,7 @@ class SecretRotateCommand extends Command
 
         $newSecret = Str::random(64);
 
-        $endpoint->update([
+        $repository->updateEndpoint($endpoint, [
             'previous_secret' => $endpoint->secret,
             'secret_rotated_at' => now(),
             'secret' => $newSecret,

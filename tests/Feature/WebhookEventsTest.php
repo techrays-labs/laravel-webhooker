@@ -19,6 +19,7 @@ use TechraysLabs\Webhooker\Jobs\DispatchWebhookJob;
 use TechraysLabs\Webhooker\Jobs\ProcessInboundWebhookJob;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;
 use TechraysLabs\Webhooker\Models\WebhookEvent;
+use TechraysLabs\Webhooker\Contracts\WebhookLock;
 use TechraysLabs\Webhooker\Tests\TestCase;
 
 class WebhookEventsTest extends TestCase
@@ -160,6 +161,7 @@ class WebhookEventsTest extends TestCase
         $job->handle(
             app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
             app(\TechraysLabs\Webhooker\Contracts\InboundProcessor::class),
+            app(WebhookLock::class),
         );
 
         Event::assertDispatched(InboundWebhookProcessed::class, function ($e) use ($event) {
@@ -201,6 +203,7 @@ class WebhookEventsTest extends TestCase
         $job->handle(
             app(\TechraysLabs\Webhooker\Contracts\WebhookRepository::class),
             $processor,
+            app(WebhookLock::class),
         );
 
         Event::assertDispatched(InboundWebhookFailed::class, function ($e) use ($event) {
@@ -240,6 +243,7 @@ class WebhookEventsTest extends TestCase
             app(\TechraysLabs\Webhooker\Contracts\SignatureGenerator::class),
             app(\TechraysLabs\Webhooker\Contracts\RetryStrategy::class),
             app(\TechraysLabs\Webhooker\Contracts\CircuitBreaker::class),
+            app(WebhookLock::class),
         );
     }
 }

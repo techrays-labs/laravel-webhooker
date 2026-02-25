@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace TechraysLabs\Webhooker\Services;
 
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use TechraysLabs\Webhooker\Contracts\WebhookMetrics;
+use TechraysLabs\Webhooker\Contracts\WebhookRepository;
 use TechraysLabs\Webhooker\DTOs\EndpointHealth;
+use TechraysLabs\Webhooker\DTOs\HealthHistoryPoint;
 use TechraysLabs\Webhooker\DTOs\MetricsSummary;
 use TechraysLabs\Webhooker\Models\WebhookAttempt;
 use TechraysLabs\Webhooker\Models\WebhookEndpoint;
@@ -158,5 +161,23 @@ class EloquentWebhookMetrics implements WebhookMetrics
         }
 
         return round((float) $query->avg('duration_ms'), 2);
+    }
+
+    /**
+     * @return Collection<int, HealthHistoryPoint>
+     */
+    public function endpointHealthHistory(int $endpointId, int $days = 30): Collection
+    {
+        $repository = app(WebhookRepository::class);
+        $snapshots = $repository->getHealthHistory($endpointId, $days);
+
+        return $snapshots->map(function ($snapshot) {
+            return new HealthHistoryPoint(
+                successRate: $snapshot->success_rate,
+                averageResponseTimeMs: $snapshot->average_response_time_ms,
+                status: $snapshot->status,
+                recordedAt: $snapshot->recorded_at,
+            );
+        });
     }
 }

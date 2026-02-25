@@ -5,6 +5,85 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-02-25
+
+### Added
+
+#### Storage Driver Abstraction
+- `WebhookStorageManager` following Laravel's Manager pattern (`Cache::driver()`, `Queue::connection()`)
+- Pluggable storage driver architecture — swap `eloquent` for custom drivers without changing application code
+- `WEBHOOK_STORAGE_DRIVER` env variable for driver selection
+
+#### Dead-Letter Queue
+- `STATUS_DEAD_LETTER` status for events that exhaust all retries
+- Automatic dead-lettering when `dead_letter.enabled` and `dead_letter.auto_move` are true
+- `dead_letter_reason` and `dead_lettered_at` columns on `webhook_events`
+- `webhook:dead-letter list|retry|purge|count` Artisan command for DLQ management
+- `WebhookMovedToDeadLetter` event fired when events move to DLQ
+- Configurable DLQ retention period (default: 90 days)
+- Pruning support for dead-lettered events
+
+#### Event Batching
+- `WebhookBatch` model for tracking batch dispatch operations
+- `Webhook::dispatchBatch()` — dispatch same event to multiple endpoints as a tracked batch
+- `Webhook::broadcastBatch()` — broadcast to all active endpoints as a tracked batch
+- `Webhook::batchStatus()` — query batch progress
+- Batch status tracking: `pending`, `processing`, `completed`, `partial_failure`, `failed`
+- `WebhookBatchCompleted` and `WebhookBatchPartiallyFailed` events
+- Atomic batch counter updates during job processing
+
+#### Endpoint Health History
+- `WebhookHealthSnapshot` model for periodic health recording
+- `webhook:health:snapshot` Artisan command (schedulable) to capture health data points
+- `HealthHistoryPoint` DTO for health history data
+- `endpointHealthHistory()` method on `WebhookMetrics` contract
+- Configurable snapshot interval and retention period
+- Health snapshot pruning support
+
+#### Multi-Database Support
+- Read/write connection separation in `EloquentWebhookRepository`
+- `storage.drivers.eloquent.connection` — primary database connection
+- `storage.drivers.eloquent.read_connection` — read replica connection
+- Automatic query routing: reads go to replica, writes go to primary
+
+#### Table Partitioning Support
+- `PartitionManager` service for MySQL (RANGE) and PostgreSQL (declarative) partitioning
+- `webhook:partition:create` — create future monthly partitions
+- `webhook:partition:drop` — drop old partitions beyond retention
+- Publishable migration stubs for partitioned table setup
+- Configurable strategy (`monthly`), tables, and future partition count
+
+#### Horizontal Scaling Support
+- `WebhookLock` contract for distributed locking
+- `CacheLockProvider` — cache-based implementation using Laravel's atomic locks
+- Distributed event-level locking in `DispatchWebhookJob` and `ProcessInboundWebhookJob`
+- Named lock support for arbitrary critical sections
+- Configurable lock TTL and unique job processing
+
+### Changed
+
+- **BREAKING:** `WebhookRepository` contract expanded with ~20 new method signatures
+- **BREAKING:** `DispatchWebhookJob::handle()` now requires `WebhookLock` parameter
+- **BREAKING:** `ProcessInboundWebhookJob::handle()` now requires `WebhookLock` parameter
+- **BREAKING:** `WebhookMetrics` contract extended with `endpointHealthHistory()` method
+- All direct Eloquent model access replaced with repository pattern calls (middleware, commands, controllers)
+- `EloquentWebhookRepository` rewritten with connection-aware query helpers
+- `PruneCommand` now handles dead-letter and health snapshot pruning
+- Service provider bindings updated to resolve through `WebhookStorageManager`
+
+### Database Migrations
+
+- `add_dead_letter_columns_to_webhook_events_table` — `dead_letter_reason`, `dead_lettered_at`
+- `create_webhook_batches_table` — batch tracking
+- `add_batch_id_to_webhook_events_table` — links events to batches
+- `create_webhook_health_snapshots_table` — health history storage
+
+### New Contracts
+
+- `WebhookLock` — distributed locking for horizontal scaling
+
+---
+
 ## [0.1.0] - 2026-02-21
 
 ### Added
