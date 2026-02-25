@@ -1,7 +1,7 @@
 {
     "name": "techrays-labs/laravel-webhooker",
     "description": "A Laravel-native Webhook Reliability Engine for outbound & inbound webhook management with retry, replay, and dashboard.",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "type": "library",
     "license": "MIT",
     "keywords": [
