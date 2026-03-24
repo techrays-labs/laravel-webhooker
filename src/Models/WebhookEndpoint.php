@@ -28,6 +28,9 @@ use TechraysLabs\Webhooker\DTOs\EndpointHealth;
  * @property array<int, string>|null $allowed_ips
  * @property string|null $previous_secret
  * @property Carbon|null $secret_rotated_at
+ * @property string|null $event_filters
+ * @property array|null $transform_config
+ * @property string|null $transformer_class
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
@@ -51,6 +54,9 @@ class WebhookEndpoint extends Model
         'allowed_ips',
         'previous_secret',
         'secret_rotated_at',
+        'event_filters',
+        'transform_config',
+        'transformer_class',
     ];
 
     protected $hidden = [
@@ -64,6 +70,8 @@ class WebhookEndpoint extends Model
         'disabled_at' => 'datetime',
         'allowed_ips' => 'array',
         'secret_rotated_at' => 'datetime',
+        'event_filters' => 'array',
+        'transform_config' => 'array',
     ];
 
     protected static function booted(): void
@@ -153,5 +161,93 @@ class WebhookEndpoint extends Model
     public function healthStatus(): EndpointHealth
     {
         return app(WebhookMetrics::class)->endpointHealth($this->id);
+    }
+
+    /**
+     * Check if this endpoint subscribes to a given event.
+     */
+    public function subscribesToEvent(string $eventName): bool
+    {
+        $filters = $this->event_filters ?? [];
+        
+        if (empty($filters)) {
+            return true;
+        }
+
+        foreach ($filters as $pattern) {
+            if ($this->matchesPattern($eventName, (string) $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Match event name against a wildcard pattern.
+     */
+    private function matchesPattern(string $eventName, string $pattern): bool
+    {
+        if ($pattern === '*') {
+            return true;
+        }
+
+        $regex = str_replace(['\*', '\?'], ['.*', '.'], $pattern);
+        $regex = '#^'.$regex.'$#';
+
+        return (bool) preg_match($regex, $eventName);
+    }
+
+    /**
+     * Transform payload for this endpoint.
+     */
+    public function transformPayload(array $payload): array
+    {
+        if (empty($this->transform_config) && empty($this->transformer_class)) {
+            return $payload;
+        }
+
+        if ($this->transformer_class && class_exists($this->transformer_class)) {
+            $transformer = app($this->transformer_class);
+            
+            if (method_exists($transformer, 'transform')) {
+                return $transformer->transform($payload, $this);
+            }
+        }
+
+        return $this->applyTransformConfig($payload);
+    }
+
+    /**
+     * Apply JSON-based transform configuration.
+     */
+    private function applyTransformConfig(array $payload): array
+    {
+        $config = $this->transform_config ?? [];
+
+        if (isset($config['include'])) {
+            $includeKeys = array_values($config['include']);
+            $payload = array_intersect_key($payload, array_flip($includeKeys));
+        }
+
+        if (isset($config['exclude'])) {
+            $excludeKeys = array_values($config['exclude']);
+            $payload = array_diff_key($payload, array_flip($excludeKeys));
+        }
+
+        if (isset($config['rename'])) {
+            foreach ($config['rename'] as $oldKey => $newKey) {
+                if (array_key_exists($oldKey, $payload)) {
+                    $payload[$newKey] = $payload[$oldKey];
+                    unset($payload[$oldKey]);
+                }
+            }
+        }
+
+        if (isset($config['add'])) {
+            $payload = array_merge($payload, $config['add']);
+        }
+
+        return $payload;
     }
 }

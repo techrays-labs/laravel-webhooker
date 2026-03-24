@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-03-24
+
+### Added
+
+#### REST API
+- Full CRUD API for webhook endpoints, events, and analytics
+- Token-based authentication with abilities and expiration
+- `/api/webhooks/*` endpoints for programmatic management
+- Schema validation endpoints
+
+#### Event Transforms
+- Per-endpoint payload transformations
+- Include/exclude/rename fields via config
+- Custom transformer class support
+- Applied before delivery to customize payloads per consumer
+
+#### Event Filtering
+- Subscribe endpoints to specific event patterns
+- Wildcard pattern matching (`*`, `?`)
+- Fine-grained control over which events each endpoint receives
+
+#### Event Schema Registry
+- `WebhookEventSchema` model for storing event schemas
+- REST API for schema CRUD operations
+- Validate payloads against registered schemas
+
+#### Real-time WebSockets
+- `WebhookDeliveryCompleted` event for broadcasting
+- WebSocket channel support for live delivery monitoring
+- Endpoint-specific and global delivery channels
+
+#### Plugin System
+- `WebhookPlugin` contract for implementing plugins
+- `PluginManager` for loading and executing plugins
+- Hooks: onWebhookSending, onWebhookDelivered, onWebhookFailed
+- Transform and filter capabilities via plugins
+
+#### Analytics Dashboard
+- New analytics view in the web dashboard
+- Events over time chart
+- Top endpoints by volume
+- Success rates and response time metrics
+
+### Changed
+- Added Laravel 13 support
+- Updated orchestra/testbench to v11.0
+
 ## [2.0.0] - 2026-02-25
 
 ### Added

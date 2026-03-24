@@ -75,11 +75,54 @@ Webhooks are critical infrastructure, but building reliable webhook delivery is 
 - **Endpoint Detail Page** - Config, health, circuit breaker state, 7-day sparkline
 - **Tag Filtering** - Filter events by endpoint tag
 - **Dark Mode** - CSS variable theming with `prefers-color-scheme` and manual toggle
+- **Analytics Dashboard** - Comprehensive analytics with success rates, response times, and trends
+
+### REST API (v1.0.0)
+
+- **Full CRUD for Endpoints** - Create, read, update, delete endpoints via API
+- **Event Management** - List, view, replay, retry, delete events
+- **Analytics Endpoints** - Programmatic access to delivery statistics
+- **Token-based Authentication** - Secure API tokens with abilities and expiration
+- **Schema Validation** - Validate event payloads against registered schemas
+
+### Event Transforms (v1.0.0)
+
+- **Per-Endpoint Transforms** - Modify payloads before delivery to specific endpoints
+- **Include/Exclude Fields** - Filter payload fields with simple configuration
+- **Rename Fields** - Remap field names for different consumers
+- **Add Computed Fields** - Inject dynamic values into payloads
+- **Custom Transformers** - Implement `WebhookTransformer` interface for complex transformations
+
+### Event Filtering (v1.0.0)
+
+- **Pattern-based Subscriptions** - Subscribe endpoints to specific event patterns using wildcards
+- **Wildcard Matching** - Support `*` and `?` wildcards (e.g., `order.*`, `user.created`)
+- **Multiple Patterns** - Multiple filter patterns per endpoint
+
+### Event Schema Registry (v1.0.0)
+
+- **Schema Definitions** - Define JSON schemas for webhook event types
+- **Validation** - Validate inbound/outbound payloads against registered schemas
+- **Schema API** - RESTful management of event schemas
+
+### Real-time WebSockets (v1.0.0)
+
+- **Live Delivery Updates** - Broadcast delivery status changes in real-time
+- **Channel-based Events** - Subscribe to all deliveries or endpoint-specific channels
+- **Laravel Reverb/Pusher** - Works with any Laravel broadcast driver
+
+### Plugin System (v1.0.0)
+
+- **Extensible Architecture** - Register custom plugins to modify webhook behavior
+- **Payload Transformation** - Plugins can modify payloads before sending
+- **Event Hooks** - Hook into webhook lifecycle events (sending, delivered, failed)
+- **Event Filtering** - Plugins can filter which events reach endpoints
+- **Priority-based Execution** - Plugins execute in priority order
 
 ## Requirements
 
 - PHP 8.1+
-- Laravel 10, 11, or 12
+- Laravel 10, 11, 12, or 13
 
 ## Installation
 

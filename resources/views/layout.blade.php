@@ -205,6 +205,7 @@
             <span class="brand">Webhooker</span>
             <a href="{{ route('webhooker.events.index') }}" class="{{ request()->routeIs('webhooker.events.*') ? 'active' : '' }}">Events</a>
             <a href="{{ route('webhooker.endpoints.index') }}" class="{{ request()->routeIs('webhooker.endpoints.*') ? 'active' : '' }}">Endpoints</a>
+            <a href="{{ route('webhooker.analytics.index') }}" class="{{ request()->routeIs('webhooker.analytics.*') ? 'active' : '' }}">Analytics</a>
             <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" id="themeToggle">
                 <span id="themeIcon">&#9790;</span>
             </button>

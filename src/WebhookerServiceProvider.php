@@ -36,6 +36,8 @@ use TechraysLabs\Webhooker\Services\EloquentWebhookMetrics;
 use TechraysLabs\Webhooker\Services\HmacSignatureGenerator;
 use TechraysLabs\Webhooker\Storage\PartitionManager;
 use TechraysLabs\Webhooker\Storage\WebhookStorageManager;
+use TechraysLabs\Webhooker\Http\Middleware\AuthenticateWebhookApi;
+use TechraysLabs\Webhooker\Services\PluginManager;
 use TechraysLabs\Webhooker\Strategies\ExponentialBackoffRetry;
 
 class WebhookerServiceProvider extends ServiceProvider
@@ -76,6 +78,9 @@ class WebhookerServiceProvider extends ServiceProvider
 
         // Partition manager
         $this->app->singleton(PartitionManager::class);
+
+        // Plugin manager
+        $this->app->singleton(PluginManager::class);
     }
 
     /**
@@ -91,7 +96,13 @@ class WebhookerServiceProvider extends ServiceProvider
             $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         }
 
+        if ($this->app['config']->get('webhooks.api.enabled', false)) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+        }
+
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'webhooker');
+
+        $this->app['router']->aliasMiddleware('webhook.api', AuthenticateWebhookApi::class);
 
         if ($this->app->runningInConsole()) {
             $this->publishes([

@@ -359,4 +359,48 @@ return [
         'unique_jobs' => true,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | REST API Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Enable the built-in REST API for programmatic webhook management.
+    | Requires authentication via API tokens.
+    |
+    */
+
+    'api' => [
+        'enabled' => false,
+        'prefix' => 'api/webhooks',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | WebSocket Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Enable real-time delivery monitoring via WebSockets.
+    | Requires Laravel Reverb or Pusher for broadcasting.
+    |
+    */
+
+    'websocket' => [
+        'enabled' => false,
+        'channel' => 'webhooks',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Analytics Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Controls the analytics dashboard and data retention.
+    |
+    */
+
+    'analytics' => [
+        'enabled' => true,
+        'retention_days' => 90,
+    ],
+
 ];

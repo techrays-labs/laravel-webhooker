@@ -33,6 +33,10 @@ Route::prefix($prefix)
             ->can($gate)
             ->name('webhooker.endpoints.show');
 
+        Route::get('/analytics', [DashboardController::class, 'analytics'])
+            ->can($gate)
+            ->name('webhooker.analytics.index');
+
         Route::post('/events/bulk', [DashboardController::class, 'bulkAction'])
             ->can($gate)
             ->name('webhooker.events.bulk');

@@ -189,4 +189,59 @@ class DashboardController extends Controller
     {
         $this->repository->deleteEvents(array_map('intval', $eventIds));
     }
+
+    /**
+     * Display analytics dashboard.
+     */
+    public function analytics(Request $request): View
+    {
+        $startDate = $request->date('start_date', Carbon::now()->subDays(30));
+        $endDate = $request->date('end_date', Carbon::now());
+
+        $stats = [
+            'total_endpoints' => \TechraysLabs\Webhooker\Models\WebhookEndpoint::count(),
+            'active_endpoints' => \TechraysLabs\Webhooker\Models\WebhookEndpoint::where('is_active', true)->count(),
+            'total_events' => \TechraysLabs\Webhooker\Models\WebhookEvent::whereBetween('created_at', [$startDate, $endDate])->count(),
+            'delivered' => \TechraysLabs\Webhooker\Models\WebhookEvent::whereBetween('created_at', [$startDate, $endDate])
+                ->where('status', WebhookEvent::STATUS_DELIVERED)->count(),
+            'failed' => \TechraysLabs\Webhooker\Models\WebhookEvent::whereBetween('created_at', [$startDate, $endDate])
+                ->where('status', WebhookEvent::STATUS_FAILED)->count(),
+            'pending' => \TechraysLabs\Webhooker\Models\WebhookEvent::whereBetween('created_at', [$startDate, $endDate])
+                ->where('status', WebhookEvent::STATUS_PENDING)->count(),
+            'success_rate' => 0,
+            'average_response_time' => 0,
+        ];
+
+        if ($stats['total_events'] > 0) {
+            $stats['success_rate'] = round(($stats['delivered'] / $stats['total_events']) * 100, 2);
+        }
+
+        $topEndpoints = \TechraysLabs\Webhooker\Models\WebhookEndpoint::select('webhook_endpoints.id', 'webhook_endpoints.name')
+            ->join('webhook_events', 'webhook_endpoints.id', '=', 'webhook_events.endpoint_id')
+            ->whereBetween('webhook_events.created_at', [$startDate, $endDate])
+            ->groupBy('webhook_endpoints.id', 'webhook_endpoints.name')
+            ->selectRaw('COUNT(*) as total, SUM(CASE WHEN webhook_events.status = ? THEN 1 ELSE 0 END) as delivered', [WebhookEvent::STATUS_DELIVERED])
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get();
+
+        $eventsOverTime = \TechraysLabs\Webhooker\Models\WebhookEvent::whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('DATE(created_at) as date, status, COUNT(*) as count')
+            ->groupBy('date', 'status')
+            ->orderBy('date')
+            ->get()
+            ->groupBy('date')
+            ->map(fn ($items) => $items->pluck('count', 'status')->toArray())
+            ->toArray();
+
+        $avgResponseTime = \TechraysLabs\Webhooker\Models\WebhookAttempt::whereBetween('created_at', [$startDate, $endDate])
+            ->whereNotNull('response_time_ms')
+            ->avg('response_time_ms') ?? 0;
+        $stats['average_response_time'] = round($avgResponseTime, 2);
+
+        /** @var view-string $view */
+        $view = 'webhooker::analytics.index';
+
+        return view($view, compact('stats', 'topEndpoints', 'eventsOverTime'));
+    }
 }
